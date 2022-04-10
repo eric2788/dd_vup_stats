@@ -10,8 +10,6 @@ RUN go mod download
 
 RUN go build -o /go/bin/dd_vup_stats
 
-RUN apk delete git
-
 FROM alpine:latest
 
 COPY --from=builder /go/bin/dd_vup_stats /dd_vup_stats
