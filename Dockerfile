@@ -10,6 +10,8 @@ RUN go build -o /go/bin/dd_vup_stats
 
 FROM alpine:latest
 
+RUN apk run update && apk add git
+
 COPY --from=builder /go/bin/dd_vup_stats /dd_vup_stats
 RUN chmod +x /dd_vup_stats
 
