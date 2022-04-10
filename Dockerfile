@@ -26,6 +26,8 @@ ENV BILIGO_HOST=http://192.168.0.127:8888
 
 EXPOSE 8086
 
+RUN apk delete git
+
 ENTRYPOINT [ "/dd_vup_stats" ]
 
 
