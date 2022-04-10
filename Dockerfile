@@ -14,15 +14,13 @@ COPY --from=builder /go/bin/dd_vup_stats /dd_vup_stats
 RUN chmod +x /dd_vup_stats
 
 ENV GIN_MODE=release
-
-MYSQL_HOST=192.168.0.127
-MYSQL_PORT=3306
-MYSQL_USER=ddstats
-MYSQL_PASS=changeme
-MYSQL_DB=ddstats
-
-WEBSOCKET_URL=ws://192.168.0.127:8888/ws/global
-BILIGO_HOST=http://192.168.0.127:8888
+ENV MYSQL_HOST=192.168.0.127
+ENV MYSQL_PORT=3306
+ENV MYSQL_USER=ddstats
+ENV MYSQL_PASS=changeme
+ENV MYSQL_DB=ddstats
+ENV WEBSOCKET_URL=ws://192.168.0.127:8888/ws/global
+ENV BILIGO_HOST=http://192.168.0.127:8888
 
 EXPOSE 8086
 

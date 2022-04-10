@@ -15,11 +15,15 @@ import (
 )
 
 func init() {
-	// debug mode
-	logrus.SetLevel(logrus.DebugLevel)
+	if os.Getenv("GIN_MODE") != "release" {
+		// debug mode
+		logrus.SetLevel(logrus.DebugLevel)
+	}
 
-	if err := godotenv.Load(); err != nil {
-		logrus.Errorf("Error while loading environment file: %v", err)
+	if _, err := os.Open(".env"); err == nil {
+		if err := godotenv.Load(); err != nil {
+			logrus.Errorf("Error while loading environment file: %v", err)
+		}
 	}
 }
 
