@@ -4,13 +4,15 @@ WORKDIR /app
 
 COPY . .
 
+RUN apk run update && apk add git
+
 RUN go mod download
 
 RUN go build -o /go/bin/dd_vup_stats
 
-FROM alpine:latest
+RUN apk delete git
 
-RUN apk run update && apk add git
+FROM alpine:latest
 
 COPY --from=builder /go/bin/dd_vup_stats /dd_vup_stats
 RUN chmod +x /dd_vup_stats
@@ -25,8 +27,6 @@ ENV WEBSOCKET_URL=ws://192.168.0.127:8888/ws/global
 ENV BILIGO_HOST=http://192.168.0.127:8888
 
 EXPOSE 8086
-
-RUN apk delete git
 
 ENTRYPOINT [ "/dd_vup_stats" ]
 
