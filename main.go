@@ -62,10 +62,10 @@ func main() {
 func CORS() gin.HandlerFunc {
 	def := cors.DefaultConfig()
 	return cors.New(cors.Config{
-		AllowOrigins: []string{
-			"https://ddstats.ericlamm.xyz",
-			"http://192.168.0.30", // debug only
-		},
+		// AllowOrigins: []string{
+		// 	"https://ddstats.ericlamm.xyz",
+		// },
+		AllowAllOrigins: true, // debug only
 		AllowWebSockets: true,
 		AllowMethods:    def.AllowMethods,
 		AllowHeaders: []string{
