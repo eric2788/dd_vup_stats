@@ -1,5 +1,6 @@
 package vup
 
+/*
 import (
 	"encoding/json"
 	"github.com/joho/godotenv"
@@ -27,3 +28,5 @@ func init() {
 	}
 	db.InitDB()
 }
+
+*/
