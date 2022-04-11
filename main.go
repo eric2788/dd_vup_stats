@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	"sync"
+	"vup_dd_stats/controller/records"
 	"vup_dd_stats/controller/stats"
 	"vup_dd_stats/controller/user"
 	"vup_dd_stats/service/blive"
@@ -48,6 +49,7 @@ func main() {
 
 	user.Register(router.Group("/user"))
 	stats.Register(router.Group("/stats"))
+	records.Register(router.Group("/records"))
 
 	if err := router.Run(":8086"); err != nil {
 		logrus.Errorf("Error while starting server: %v", err)

@@ -6,9 +6,8 @@ import (
 	"vup_dd_stats/service/statistics"
 )
 
-func onLive(data *blive.LiveData) error {
+func updateInfo(data *blive.LiveData) error {
 
-	logger.Infof("%v 開播，正在刷新其用戶資訊...", data.LiveInfo.Name)
 	info, err := statistics.GetLiveInfo(data.LiveInfo.RoomId)
 
 	if err != nil {
@@ -28,13 +27,14 @@ func onLive(data *blive.LiveData) error {
 
 	if result.Error != nil {
 		logger.Warnf("更新 %v 的用戶資訊到資料庫時出現錯誤: %v", data.LiveInfo.Name, result.Error)
-	} else {
-		logger.Infof("已更新 %v 筆資料到資料庫。", result.RowsAffected)
+	} else if result.RowsAffected > 0 {
+		logger.Infof("已更新 %s 的用戶資訊到資料庫。(%v 筆資料)", info.Name, result.RowsAffected)
 	}
 
 	return nil
 }
 
 func init() {
-	blive.RegisterHandler(blive.Live, onLive)
+	blive.RegisterHandler(blive.Live, updateInfo)
+	blive.RegisterHandler(blive.Preparing, updateInfo)
 }

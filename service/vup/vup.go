@@ -46,6 +46,8 @@ func GetVup(uid int64) (*UserResp, error) {
 
 	var vup UserInfo
 	err = db.Database.
+		Model(&db.Vup{}).
+		Where("vups.uid = ?", uid).
 		Select([]string{
 			"vups.uid",
 			"vups.name",
@@ -113,7 +115,7 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 	return lastListenAt
 }
 
-func GetVups(page, size int, desc bool) (*ListResp, error) {
+func GetVups(page, size int, desc bool, orderBy string) (*ListResp, error) {
 
 	total, err := GetTotalVupCount()
 
@@ -148,7 +150,7 @@ func GetVups(page, size int, desc bool) (*ListResp, error) {
 		}).
 		Limit(size).
 		Offset((page - 1) * size).
-		Order(fmt.Sprintf("first_listen_at %v", order)).
+		Order(fmt.Sprintf("%v %v", orderBy, order)).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Group("uid").
 		Find(&infos).

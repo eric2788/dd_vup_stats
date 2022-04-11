@@ -13,20 +13,20 @@ type (
 		FirstListenAt    time.Time
 		RoomId           int64
 		Sign             string
-		Behaviours       []*Behaviour `gorm:"foreignKey:Uid;references:Uid"`
-		TargetBehaviours []*Behaviour `gorm:"foreignKey:TargetUid;references:Uid"`
+		Behaviours       []*Behaviour `gorm:"foreignKey:Uid;references:Uid;OnDelete:CASCADE"`
+		TargetBehaviours []*Behaviour `gorm:"foreignKey:TargetUid;references:Uid;OnDelete:CASCADE"`
 
-		LastListen *LastListen `gorm:"foreignKey:Uid;references:Uid"`
+		LastListen *LastListen `gorm:"foreignKey:Uid;references:Uid;OnDelete:CASCADE"`
 	}
 
 	Behaviour struct {
-		ID        uint `gorm:"primaryKey;autoIncrement"`
-		Uid       int64
-		CreatedAt time.Time
-		TargetUid int64
-		Command   string
-		Display   string
-		Image     sql.NullString
+		ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
+		Uid       int64          `json:"uid"`
+		CreatedAt time.Time      `json:"created_at"`
+		TargetUid int64          `json:"target_uid"`
+		Command   string         `json:"command"`
+		Display   string         `json:"display"`
+		Image     sql.NullString `json:"image"`
 	}
 
 	LastListen struct {

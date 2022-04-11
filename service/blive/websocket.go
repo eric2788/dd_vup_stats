@@ -33,6 +33,8 @@ func StartWebSocket(ctx context.Context, wg *sync.WaitGroup) {
 	con.SetCloseHandler(func(code int, text string) error {
 		return con.WriteMessage(websocket.CloseMessage, nil)
 	})
+
+	wg.Add(1)
 	go onReceiveMessage(ctx, con, wg)
 }
 

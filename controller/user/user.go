@@ -3,7 +3,9 @@ package user
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 	"strconv"
+	"strings"
 	"vup_dd_stats/service/vup"
 )
 
@@ -38,8 +40,19 @@ func GetUsers(c *gin.Context) {
 	}
 
 	desc := c.DefaultQuery("desc", "true") == "true"
+	orderBy := c.DefaultQuery("orderBy", "last_listened_at")
 
-	resp, err := vup.GetVups(page, size, desc)
+	orderAllows := []string{"last_listened_at", "dd_count", "last_behaviour_at"}
+
+	if !slices.Contains(orderAllows, orderBy) {
+		c.JSON(400, gin.H{
+			"code":    400,
+			"message": "orderBy must be one of " + strings.Join(orderAllows, ", "),
+		})
+		return
+	}
+
+	resp, err := vup.GetVups(page, size, desc, orderBy)
 
 	if err != nil {
 		logger.Errorf("索取 vup 列表時出現錯誤: %v", err)

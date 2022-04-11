@@ -9,6 +9,7 @@ const (
 	SuperChatMessage = "SUPER_CHAT_MESSAGE"
 	Live             = "LIVE"
 	InteractWord     = "INTERACT_WORD"
+	Preparing        = "PREPARING"
 )
 
 type (

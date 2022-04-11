@@ -34,8 +34,13 @@ type (
 		Sign   string `json:"sign"`
 	}
 
+	AnalysisUserInfo struct {
+		SimpleUserInfo
+		Count int64 `json:"count"`
+	}
+
 	Analysis struct {
-		TopDDVups    []*SimpleUserInfo `json:"top_dd_vups"`
-		TopGuestVups []*SimpleUserInfo `json:"top_guest_vups"`
+		TopDDVups    []AnalysisUserInfo `json:"top_dd_vups"`
+		TopGuestVups []AnalysisUserInfo `json:"top_guest_vups"`
 	}
 )
