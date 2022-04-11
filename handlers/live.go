@@ -3,13 +3,13 @@ package handlers
 import (
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
-	"vup_dd_stats/service/stats"
+	"vup_dd_stats/service/statistics"
 )
 
 func onLive(data *blive.LiveData) error {
 
 	logger.Infof("%v 開播，正在刷新其用戶資訊...", data.LiveInfo.Name)
-	info, err := stats.GetLiveInfo(data.LiveInfo.RoomId)
+	info, err := statistics.GetLiveInfo(data.LiveInfo.RoomId)
 
 	if err != nil {
 		logger.Warnf("刷新 %v 的用戶資訊時出現錯誤: %v, 已略過更新。", data.LiveInfo.Name, err)

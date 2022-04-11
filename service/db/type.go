@@ -15,6 +15,8 @@ type (
 		Sign             string
 		Behaviours       []*Behaviour `gorm:"foreignKey:Uid;references:Uid"`
 		TargetBehaviours []*Behaviour `gorm:"foreignKey:TargetUid;references:Uid"`
+
+		LastListen *LastListen `gorm:"foreignKey:Uid;references:Uid"`
 	}
 
 	Behaviour struct {
@@ -25,5 +27,10 @@ type (
 		Command   string
 		Display   string
 		Image     sql.NullString
+	}
+
+	LastListen struct {
+		Uid          int64     `gorm:"primaryKey"`
+		LastListenAt time.Time `gorm:"default:null"`
 	}
 )

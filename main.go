@@ -2,14 +2,17 @@ package main
 
 import (
 	"context"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"os"
-	"os/signal"
 	"sync"
+	"vup_dd_stats/controller/stats"
+	"vup_dd_stats/controller/user"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
-	"vup_dd_stats/service/stats"
+	"vup_dd_stats/service/statistics"
 
 	_ "vup_dd_stats/handlers"
 )
@@ -36,12 +39,38 @@ func main() {
 	db.InitDB()
 
 	go blive.StartWebSocket(ctx, wg)
-	go stats.StartListenStats(ctx)
+	go statistics.StartListenStats(ctx)
 
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, os.Kill)
-	<-ch
+	router := gin.Default()
+
+	router.Use(CORS())
+	router.Use(ErrorHandler)
+
+	user.Register(router.Group("/user"))
+	stats.Register(router.Group("/stats"))
+
+	if err := router.Run(":8086"); err != nil {
+		logrus.Errorf("Error while starting server: %v", err)
+	}
 
 	cancel()
 	wg.Wait()
+}
+
+func CORS() gin.HandlerFunc {
+	def := cors.DefaultConfig()
+	return cors.New(cors.Config{
+		AllowOrigins: []string{
+			"https://ddstats.ericlamm.xyz",
+			"http://192.168.0.30", // debug only
+		},
+		AllowWebSockets: true,
+		AllowMethods:    def.AllowMethods,
+		AllowHeaders: []string{
+			"Authorization",
+			"Content-Type",
+			"Origin",
+			"Content-Length",
+		},
+	})
 }

@@ -18,6 +18,7 @@ func GetUsers(c *gin.Context) {
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 
 	if err != nil {
+		logger.Warn(err)
 		c.JSON(400, gin.H{
 			"code":    400,
 			"message": "page must be a number",
@@ -28,6 +29,7 @@ func GetUsers(c *gin.Context) {
 	size, err := strconv.Atoi(c.DefaultQuery("size", "30"))
 
 	if err != nil {
+		logger.Warn(err)
 		c.JSON(400, gin.H{
 			"code":    400,
 			"message": "size must be a number",
@@ -56,6 +58,31 @@ func GetUsers(c *gin.Context) {
 }
 
 func GetUser(c *gin.Context) {
-	//userId := c.Param("uid")
+	userId, err := strconv.ParseInt(c.Param("uid"), 10, 64)
 
+	if err != nil {
+		logger.Warn(err)
+		c.JSON(400, gin.H{
+			"code":    400,
+			"message": "uid must be a number",
+		})
+		return
+	}
+
+	resp, err := vup.GetVup(userId)
+
+	if err != nil {
+		logger.Errorf("索取 vup 時出現錯誤: %v", err)
+		c.JSON(500, gin.H{
+			"code":    500,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"code":    200,
+		"message": "success",
+		"data":    resp,
+	})
 }

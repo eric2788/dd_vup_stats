@@ -1,4 +1,4 @@
-package stats
+package statistics
 
 import (
 	"encoding/json"
@@ -37,4 +37,19 @@ func GetLiveInfo(roomId int64) (*blive.LiveInfo, error) {
 	info := &blive.LiveInfo{}
 	err = json.Unmarshal(b, info)
 	return info, err
+}
+
+func GetVtbListVtbMoe() ([]VtbsMoeResp, error) {
+	res, err := http.Get("https://api.tokyo.vtbs.moe/v1/vtbs")
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	var resp []VtbsMoeResp
+	err = json.Unmarshal(b, &resp)
+	return resp, err
 }

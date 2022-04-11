@@ -31,11 +31,6 @@ func danmuMsg(data *blive.LiveData) error {
 	// DD的人
 	uid := int64(userInfo[0].(float64))
 
-	// 如果是自己的彈幕就不記錄
-	// if uid == targetUid {
-	// 	return nil
-	// }
-
 	// 先檢查 DD的人 是否在 vup 資料表中，如果是就記錄
 	exist, err := vup.IsVup(uid)
 

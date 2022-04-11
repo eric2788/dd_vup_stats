@@ -2,9 +2,15 @@ package vup
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
+	"math"
 	"time"
 	"vup_dd_stats/service/db"
+	"vup_dd_stats/service/statistics"
 )
+
+var logger = logrus.WithField("service", "vup")
 
 func IsVup(uid int64) (bool, error) {
 	var exist bool
@@ -29,6 +35,70 @@ func GetTotalVupCount() (int64, error) {
 	return count, err
 }
 
+func GetVup(uid int64) (*UserResp, error) {
+
+	resp, err := statistics.GetListening()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var vup UserInfo
+	err = db.Database.
+		Select([]string{
+			"vups.uid",
+			"vups.name",
+			"vups.face",
+			"vups.first_listen_at",
+			"vups.room_id",
+			"vups.sign",
+			"COUNT(behaviours.uid) AS dd_count",
+			"MAX(behaviours.created_at) AS last_behaviour_at",
+		}).
+		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
+		Where("vups.uid = ?", uid).
+		Find(&vup).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	listening := slices.Contains(resp.Rooms, vup.RoomId)
+	lastListenAt := GetLastListen(&vup, listening)
+
+	return &UserResp{
+		UserInfo:       vup,
+		Listening:      listening,
+		LastListenedAt: lastListenAt,
+	}, nil
+
+}
+
+func GetLastListen(vup *UserInfo, listening bool) time.Time {
+
+	lastListenAt := time.Now()
+
+	if !listening {
+
+		var lastListen db.LastListen
+
+		err := db.Database.FirstOrCreate(&lastListen, db.LastListen{
+			Uid:          vup.Uid,
+			LastListenAt: time.Now(),
+		}).Error
+
+		if err != nil {
+			logger.Errorf("嘗試插入最後監聽訊息時出現錯誤: %v", err)
+			lastListenAt = vup.FirstListenAt
+		} else {
+			lastListenAt = lastListen.LastListenAt
+		}
+	}
+
+	return lastListenAt
+}
+
 func GetVups(page, size int, desc bool) (*ListResp, error) {
 
 	total, err := GetTotalVupCount()
@@ -44,13 +114,29 @@ func GetVups(page, size int, desc bool) (*ListResp, error) {
 		order = "asc"
 	}
 
+	resp, err := statistics.GetListening()
+
+	if err != nil {
+		return nil, err
+	}
+
 	err = db.Database.
 		Model(&db.Vup{}).
+		Select([]string{
+			"vups.uid",
+			"vups.name",
+			"vups.face",
+			"vups.first_listen_at",
+			"vups.room_id",
+			"vups.sign",
+			"COUNT(behaviours.uid) AS dd_count",
+			"MAX(behaviours.created_at) AS last_behaviour_at",
+		}).
 		Limit(size).
 		Offset((page - 1) * size).
 		Order(fmt.Sprintf("first_listen_at %v", order)).
-		Select([]string{"uid", "name", "face", "first_listen_at", "room_id", "sign", "count(behaviour.uid) AS DD_Count"}).
-		Joins("left join behaviour on behaviour.uid = vup.uid").
+		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
+		Group("uid").
 		Find(&infos).
 		Error
 
@@ -61,18 +147,23 @@ func GetVups(page, size int, desc bool) (*ListResp, error) {
 	user := make([]*UserResp, len(infos))
 
 	for i, info := range infos {
+
+		listening := slices.Contains(resp.Rooms, info.RoomId)
+
+		lastListenAt := GetLastListen(&info, listening)
+
 		user[i] = &UserResp{
-			UserInfo:        info,
-			Listening:       false,
-			LastListenedAt:  time.Time{},
-			LastBehaviourAt: time.Time{},
+			UserInfo:       info,
+			Listening:      listening,
+			LastListenedAt: lastListenAt,
 		}
 	}
 
 	return &ListResp{
 		Page:    page,
 		Size:    size,
-		MaxPage: total/int64(size) + 1,
+		MaxPage: int64(math.Ceil(float64(total)/float64(size))) + 1,
+		Total:   total,
 		List:    user,
 	}, nil
 }

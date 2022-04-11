@@ -24,7 +24,7 @@ func InitDB() {
 	mysqlDB := os.Getenv("MYSQL_DB")
 
 	dataSource := fmt.Sprintf(
-		"%v:%v@tcp(%v:%v)/%v?charset=utf8",
+		"%v:%v@tcp(%v:%v)/%v?charset=utf8&parseTime=true",
 		mysqlUser,
 		mysqlPass,
 		mysqlHost,
@@ -42,7 +42,7 @@ func InitDB() {
 
 	if err = db.
 		Set("gorm:table_options", "ENGINE=InnoDB").
-		AutoMigrate(&Vup{}, &Behaviour{}); err != nil {
+		AutoMigrate(&Vup{}, &Behaviour{}, &LastListen{}); err != nil {
 		log.Fatalf("Error while auto migrating tables: %v", err)
 	}
 
