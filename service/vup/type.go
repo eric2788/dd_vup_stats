@@ -43,4 +43,13 @@ type (
 		TopDDVups    []AnalysisUserInfo `json:"top_dd_vups"`
 		TopGuestVups []AnalysisUserInfo `json:"top_guest_vups"`
 	}
+
+	GlobalStatistics struct {
+		TotalVupRecorded           int64                         `json:"total_vup_recorded"`
+		CurrentListeningCount      int64                         `json:"current_listening_count"`
+		MostDDBehaviourVupCommands map[string][]AnalysisUserInfo `json:"most_dd_behaviour_vup_commands"`
+		MostDDBehaviourVups        []AnalysisUserInfo            `json:"most_dd_behaviour_vups"`
+		MostDDVups                 []AnalysisUserInfo            `json:"most_dd_vups"` // D 最多直播間的人
+		TotalDDBehaviours          int64                         `json:"total_dd_behaviours"`
+	}
 )

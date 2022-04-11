@@ -16,9 +16,23 @@ func Register(group *gin.RouterGroup) {
 }
 
 func GetGlobalStats(c *gin.Context) {
+	resp, err := vup.GetGlobalStats()
+
+	if err != nil {
+		logger.Error(err)
+		c.JSON(500, gin.H{
+			"code": 500,
+			"msg":  err.Error(),
+		})
+		return
+	}
+
 	c.JSON(200, gin.H{
-		"message": "pong",
+		"code": 200,
+		"msg":  "success",
+		"data": resp,
 	})
+
 }
 
 func GetUserStatsCommand(c *gin.Context) {

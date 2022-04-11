@@ -1,6 +1,10 @@
 package vup
 
-import "vup_dd_stats/service/db"
+import (
+	"vup_dd_stats/service/blive"
+	"vup_dd_stats/service/db"
+	"vup_dd_stats/service/statistics"
+)
 
 func GetStats(uid int64, limit int) (*Analysis, error) {
 
@@ -115,5 +119,52 @@ func GetStatsCommand(uid int64, limit int, command string) (*Analysis, error) {
 	return &Analysis{
 		TopDDVups:    mostDDVups,
 		TopGuestVups: mostGuestVups,
+	}, nil
+}
+
+func GetGlobalStats() (*GlobalStatistics, error) {
+
+	s, err := statistics.GetListening()
+	if err != nil {
+		return nil, err
+	}
+
+	listeningCount := s.TotalListeningCount
+
+	recordCount, err := GetTotalVupCount()
+	if err != nil {
+		logger.Errorf("獲取總vup人數出現錯誤: %v", err)
+		recordCount = 0
+	}
+
+	behaviourCount, err := GetTotalBehaviourCount()
+	if err != nil {
+		logger.Errorf("獲取總dd行為數時出現錯誤: %v", err)
+		behaviourCount = 0
+	}
+
+	mostDDBehaviourVups, err := GetMostBehaviourVups(3)
+	if err != nil {
+		logger.Errorf("獲取dd行為最多的vup時出現錯誤: %v", err)
+		mostDDBehaviourVups = []AnalysisUserInfo{}
+	}
+
+	mostDDVups, err := GetMostDDVups(3)
+	if err != nil {
+		logger.Errorf("獲取dd最多的vup時出現錯誤: %v", err)
+		mostDDVups = []AnalysisUserInfo{}
+	}
+
+	return &GlobalStatistics{
+		TotalVupRecorded:      recordCount,
+		CurrentListeningCount: listeningCount,
+		MostDDBehaviourVupCommands: map[string][]AnalysisUserInfo{
+			blive.DanmuMsg:         GetMostBehaviourVupsByCommand(3, blive.DanmuMsg),
+			blive.InteractWord:     GetMostBehaviourVupsByCommand(3, blive.InteractWord),
+			blive.SuperChatMessage: GetMostBehaviourVupsByCommand(3, blive.SuperChatMessage),
+		},
+		MostDDBehaviourVups: mostDDBehaviourVups,
+		MostDDVups:          mostDDVups,
+		TotalDDBehaviours:   behaviourCount,
 	}, nil
 }

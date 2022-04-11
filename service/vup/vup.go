@@ -183,3 +183,28 @@ func GetVups(page, size int, desc bool, orderBy string) (*ListResp, error) {
 		List:    user,
 	}, nil
 }
+
+func GetMostDDVups(limit int) ([]AnalysisUserInfo, error) {
+
+	var mostDDVups []AnalysisUserInfo
+
+	err := db.Database.
+		Model(&db.Behaviour{}).
+		Select([]string{
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
+			"COUNT(DISTINCT behaviours.target_uid) as count",
+		}).
+		Joins("left join vups on vups.uid = behaviours.uid").
+		Where("behaviours.target_uid != behaviours.uid").
+		Group("behaviours.uid").
+		Order("count desc").
+		Limit(3).
+		Find(&mostDDVups).
+		Error
+
+	return mostDDVups, err
+}
