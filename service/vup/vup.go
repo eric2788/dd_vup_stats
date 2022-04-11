@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
+	"gorm.io/gorm/clause"
 	"math"
 	"time"
 	"vup_dd_stats/service/db"
@@ -83,10 +84,12 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 
 		var lastListen db.LastListen
 
-		err := db.Database.FirstOrCreate(&lastListen, db.LastListen{
-			Uid:          vup.Uid,
-			LastListenAt: time.Now(),
-		}).Error
+		err := db.Database.
+			Where("uid = ?", vup.Uid).
+			FirstOrCreate(&lastListen, db.LastListen{
+				Uid:          vup.Uid,
+				LastListenAt: time.Now(),
+			}).Error
 
 		if err != nil {
 			logger.Errorf("嘗試插入最後監聽訊息時出現錯誤: %v", err)
@@ -94,6 +97,17 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 		} else {
 			lastListenAt = lastListen.LastListenAt
 		}
+
+	} else {
+
+		err := db.Database.
+			Clauses(clause.OnConflict{DoNothing: true}).
+			Delete(&db.LastListen{}, vup.Uid).Error
+
+		if err != nil {
+			logger.Errorf("嘗試刪除最後監聽訊息時出現錯誤: %v", err)
+		}
+
 	}
 
 	return lastListenAt
