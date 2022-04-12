@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm/clause"
 	"math"
 	"time"
+	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/statistics"
 )
@@ -36,7 +37,7 @@ func GetTotalVupCount() (int64, error) {
 	return count, err
 }
 
-func GetVup(uid int64) (*UserResp, error) {
+func GetVup(uid int64) (*UserDetailResp, error) {
 
 	resp, err := statistics.GetListening()
 
@@ -70,10 +71,17 @@ func GetVup(uid int64) (*UserResp, error) {
 	listening := slices.Contains(resp.Rooms, vup.RoomId)
 	lastListenAt := GetLastListen(&vup, listening)
 
-	return &UserResp{
-		UserInfo:       vup,
-		Listening:      listening,
-		LastListenedAt: lastListenAt,
+	return &UserDetailResp{
+		UserResp: UserResp{
+			UserInfo:       vup,
+			Listening:      listening,
+			LastListenedAt: lastListenAt,
+		},
+		BehavioursCount: map[string]int64{
+			blive.DanmuMsg:         GetTotalCountByCommand(uid, blive.DanmuMsg),
+			blive.InteractWord:     GetTotalCountByCommand(uid, blive.InteractWord),
+			blive.SuperChatMessage: GetTotalCountByCommand(uid, blive.SuperChatMessage),
+		},
 	}, nil
 
 }

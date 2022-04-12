@@ -134,25 +134,25 @@ func GetGlobalStats() (*GlobalStatistics, error) {
 	recordCount, err := GetTotalVupCount()
 	if err != nil {
 		logger.Errorf("獲取總vup人數出現錯誤: %v", err)
-		recordCount = 0
+		return nil, err
 	}
 
 	behaviourCount, err := GetTotalBehaviourCount()
 	if err != nil {
 		logger.Errorf("獲取總dd行為數時出現錯誤: %v", err)
-		behaviourCount = 0
+		return nil, err
 	}
 
 	mostDDBehaviourVups, err := GetMostBehaviourVups(3)
 	if err != nil {
 		logger.Errorf("獲取dd行為最多的vup時出現錯誤: %v", err)
-		mostDDBehaviourVups = []AnalysisUserInfo{}
+		return nil, err
 	}
 
 	mostDDVups, err := GetMostDDVups(3)
 	if err != nil {
 		logger.Errorf("獲取dd最多的vup時出現錯誤: %v", err)
-		mostDDVups = []AnalysisUserInfo{}
+		return nil, err
 	}
 
 	return &GlobalStatistics{
@@ -167,4 +167,22 @@ func GetGlobalStats() (*GlobalStatistics, error) {
 		MostDDVups:          mostDDVups,
 		TotalDDBehaviours:   behaviourCount,
 	}, nil
+}
+
+func GetTotalCountByCommand(uid int64, command string) int64 {
+
+	var totalCount int64
+	err := db.Database.
+		Model(&db.Behaviour{}).
+		Where("uid = ? and command = ? and uid != target_uid", uid, command).
+		Count(&totalCount).
+		Error
+
+	if err != nil {
+		logger.Errorf("獲取 %v 的 %v 行為時出現錯誤: %v", uid, command, err)
+		totalCount = -1
+	}
+
+	return totalCount
+
 }

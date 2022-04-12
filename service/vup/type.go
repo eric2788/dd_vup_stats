@@ -19,6 +19,11 @@ type (
 		LastListenedAt time.Time `json:"last_listened_at"`
 	}
 
+	UserDetailResp struct {
+		UserResp
+		BehavioursCount map[string]int64 `json:"behaviours_count"`
+	}
+
 	UserInfo struct {
 		SimpleUserInfo
 		FirstListenAt   time.Time  `json:"first_listen_at"`
