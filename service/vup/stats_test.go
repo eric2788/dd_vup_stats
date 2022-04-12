@@ -22,7 +22,7 @@ func ATestGetVupStatsCommand(t *testing.T) {
 }
 
 func aTestGetGlobalStats(t *testing.T) {
-	vup, err := GetGlobalStats()
+	vup, err := GetGlobalStats(5)
 	if err != nil {
 		t.Fatal(err)
 	}
