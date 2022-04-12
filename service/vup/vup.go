@@ -39,14 +39,10 @@ func GetTotalVupCount() (int64, error) {
 
 func GetVup(uid int64) (*UserDetailResp, error) {
 
-	resp, err := statistics.GetListening()
-
-	if err != nil {
-		return nil, err
-	}
+	listeningRooms := *(statistics.Listening)
 
 	var vup UserInfo
-	err = db.Database.
+	err := db.Database.
 		Model(&db.Vup{}).
 		Where("vups.uid = ?", uid).
 		Select([]string{
@@ -68,7 +64,7 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 		return nil, err
 	}
 
-	listening := slices.Contains(resp.Rooms, vup.RoomId)
+	listening := slices.Contains(listeningRooms, vup.RoomId)
 	lastListenAt := GetLastListen(&vup, listening)
 
 	return &UserDetailResp{
@@ -95,6 +91,7 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 		var lastListen db.LastListen
 
 		err := db.Database.
+			Clauses(clause.OnConflict{DoNothing: true}).
 			Where("uid = ?", vup.Uid).
 			FirstOrCreate(&lastListen, db.LastListen{
 				Uid:          vup.Uid,
@@ -123,7 +120,7 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 	return lastListenAt
 }
 
-func SearchVups(name string, page, pageSize int, orderBy string, desc bool) ([]UserInfo, error) {
+func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*ListResp, error) {
 
 	var vups []UserInfo
 
@@ -151,14 +148,50 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) ([]U
 		Order(fmt.Sprintf("%s %s", orderBy, order)).
 		Offset((page - 1) * pageSize).
 		Limit(pageSize).
-		Find(&vups).
-		Error
+		Find(&vups).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return vups, nil
+	var totalSearchCount int64
+
+	err = db.Database.
+		Model(&db.Vup{}).
+		Select("count(*)").
+		Where("name like ?", fmt.Sprintf("%%%s%%", name)).
+		Find(&totalSearchCount).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	var userResps []*UserResp
+
+	for _, vup := range vups {
+
+		listeningRooms := *(statistics.Listening)
+
+		var userResp UserResp
+
+		userResp.UserInfo = vup
+
+		listening := slices.Contains(listeningRooms, vup.RoomId)
+		lastListenAt := GetLastListen(&vup, listening)
+
+		userResp.Listening = listening
+		userResp.LastListenedAt = lastListenAt
+
+		userResps = append(userResps, &userResp)
+	}
+
+	return &ListResp{
+		Page:    page,
+		Size:    pageSize,
+		MaxPage: int64(math.Ceil(float64(totalSearchCount)/float64(pageSize))) + 1,
+		Total:   totalSearchCount,
+		List:    userResps,
+	}, nil
 }
 
 func GetVups(page, size int, desc bool, orderBy string) (*ListResp, error) {
@@ -176,11 +209,7 @@ func GetVups(page, size int, desc bool, orderBy string) (*ListResp, error) {
 		order = "asc"
 	}
 
-	resp, err := statistics.GetListening()
-
-	if err != nil {
-		return nil, err
-	}
+	listeningRooms := *(statistics.Listening)
 
 	err = db.Database.
 		Model(&db.Vup{}).
@@ -210,8 +239,7 @@ func GetVups(page, size int, desc bool, orderBy string) (*ListResp, error) {
 
 	for i, info := range infos {
 
-		listening := slices.Contains(resp.Rooms, info.RoomId)
-
+		listening := slices.Contains(listeningRooms, info.RoomId)
 		lastListenAt := GetLastListen(&info, listening)
 
 		user[i] = &UserResp{

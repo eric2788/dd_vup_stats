@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	logger = logrus.WithField("service", "statistics")
+	logger             = logrus.WithField("service", "statistics")
+	Listening *[]int64 = &[]int64{}
 )
 
 func StartListenStats(ctx context.Context) {
@@ -37,6 +38,8 @@ func fetchListeningInfo() {
 	}
 
 	var roomIds []int64
+
+	Listening = &stats.Rooms
 
 	result := db2.Database.
 		Model(&db2.Vup{}).
