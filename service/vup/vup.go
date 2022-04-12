@@ -54,8 +54,10 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 			"vups.sign",
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
+			"COALESCE(last_listens.last_listen_at, CURRENT_TIMESTAMP()) AS last_listened_at",
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
+		Joins("left join last_listens on last_listens.uid = vups.uid").
 		Where("vups.uid = ?", uid).
 		Find(&vup).
 		Error
@@ -67,11 +69,14 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 	listening := slices.Contains(listeningRooms, vup.RoomId)
 	lastListenAt := GetLastListen(&vup, listening)
 
+	if !listening {
+		vup.LastListenedAt = lastListenAt
+	}
+
 	return &UserDetailResp{
 		UserResp: UserResp{
-			UserInfo:       vup,
-			Listening:      listening,
-			LastListenedAt: lastListenAt,
+			UserInfo:  vup,
+			Listening: listening,
 		},
 		BehavioursCount: map[string]int64{
 			blive.DanmuMsg:         GetTotalCountByCommand(uid, blive.DanmuMsg),
@@ -141,8 +146,10 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 			"vups.sign",
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
+			"COALESCE(last_listens.last_listen_at, CURRENT_TIMESTAMP()) AS last_listened_at",
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
+		Joins("left join last_listens on last_listens.uid = vups.uid").
 		Where("vups.name like ?", fmt.Sprintf("%%%s%%", name)).
 		Group("vups.uid").
 		Order(fmt.Sprintf("%s %s", orderBy, order)).
@@ -222,11 +229,13 @@ func GetVups(page, size int, desc bool, orderBy string) (*ListResp, error) {
 			"vups.sign",
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
+			"COALESCE(last_listens.last_listen_at, CURRENT_TIMESTAMP()) AS last_listened_at",
 		}).
+		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
+		Joins("left join last_listens on last_listens.uid = vups.uid").
+		Order(fmt.Sprintf("%v %v", orderBy, order)).
 		Limit(size).
 		Offset((page - 1) * size).
-		Order(fmt.Sprintf("%v %v", orderBy, order)).
-		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Group("uid").
 		Find(&infos).
 		Error
@@ -242,10 +251,13 @@ func GetVups(page, size int, desc bool, orderBy string) (*ListResp, error) {
 		listening := slices.Contains(listeningRooms, info.RoomId)
 		lastListenAt := GetLastListen(&info, listening)
 
+		if !listening {
+			info.LastListenedAt = lastListenAt
+		}
+
 		user[i] = &UserResp{
-			UserInfo:       info,
-			Listening:      listening,
-			LastListenedAt: lastListenAt,
+			UserInfo:  info,
+			Listening: listening,
 		}
 	}
 

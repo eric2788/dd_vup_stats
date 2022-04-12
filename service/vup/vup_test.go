@@ -8,8 +8,8 @@ import (
 	"vup_dd_stats/service/db"
 )
 
-func ATestGetVups(t *testing.T) {
-	vups, err := GetVups(1, 3, true, "dd_count")
+func aTestGetVups(t *testing.T) {
+	vups, err := GetVups(1, 3, true, "last_listened_at")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -15,8 +15,7 @@ type (
 
 	UserResp struct {
 		UserInfo
-		Listening      bool      `json:"listening"`
-		LastListenedAt time.Time `json:"last_listened_at"`
+		Listening bool `json:"listening"`
 	}
 
 	UserDetailResp struct {
@@ -29,6 +28,7 @@ type (
 		FirstListenAt   time.Time  `json:"first_listen_at"`
 		LastBehaviourAt *time.Time `json:"last_behaviour_at"`
 		DDCount         int64      `json:"dd_count"`
+		LastListenedAt  time.Time  `json:"last_listened_at"`
 	}
 
 	SimpleUserInfo struct {
