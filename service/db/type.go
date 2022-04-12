@@ -30,7 +30,7 @@ type (
 	}
 
 	LastListen struct {
-		Uid          int64     `gorm:"primaryKey"`
-		LastListenAt time.Time `gorm:"default:null"`
+		Uid          int64 `gorm:"primaryKey"`
+		LastListenAt time.Time
 	}
 )

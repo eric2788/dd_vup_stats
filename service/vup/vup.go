@@ -54,7 +54,7 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 			"vups.sign",
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
-			"COALESCE(last_listens.last_listen_at, CURRENT_TIMESTAMP()) AS last_listened_at",
+			"last_listens.last_listen_at AS last_listened_at",
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
@@ -93,12 +93,13 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 
 	if !listening {
 
+		logrus.Debugf("%s is not listening", vup.Name)
+
 		var lastListen db.LastListen
 
 		err := db.Database.
-			Clauses(clause.OnConflict{DoNothing: true}).
 			Where("uid = ?", vup.Uid).
-			FirstOrCreate(&lastListen, db.LastListen{
+			FirstOrInit(&lastListen, db.LastListen{
 				Uid:          vup.Uid,
 				LastListenAt: time.Now(),
 			}).Error
@@ -111,6 +112,8 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 		}
 
 	} else {
+
+		logrus.Debugf("%s is listening", vup.Name)
 
 		err := db.Database.
 			Clauses(clause.OnConflict{DoNothing: true}).
@@ -146,7 +149,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 			"vups.sign",
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
-			"COALESCE(last_listens.last_listen_at, CURRENT_TIMESTAMP()) AS last_listened_at",
+			"last_listens.last_listen_at AS last_listened_at",
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
@@ -229,7 +232,7 @@ func GetVups(page, size int, desc bool, orderBy string) (*ListResp, error) {
 			"vups.sign",
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
-			"COALESCE(last_listens.last_listen_at, CURRENT_TIMESTAMP()) AS last_listened_at",
+			"last_listens.last_listen_at AS last_listened_at",
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
