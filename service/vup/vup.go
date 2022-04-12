@@ -276,7 +276,7 @@ func GetMostDDVups(limit int) ([]AnalysisUserInfo, error) {
 		Where("behaviours.target_uid != behaviours.uid").
 		Group("behaviours.uid").
 		Order("count desc").
-		Limit(3).
+		Limit(limit).
 		Find(&mostDDVups).
 		Error
 
