@@ -24,6 +24,14 @@ func ATestGetVup(t *testing.T) {
 	jsonPrettyPrint(t, vup)
 }
 
+func aTestSearchVups(t *testing.T) {
+	vup, err := SearchVups("冰糖", 1, 3, "dd_count", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonPrettyPrint(t, vup)
+}
+
 func ainit() {
 	logrus.SetLevel(logrus.DebugLevel)
 	if err := godotenv.Load("./../../.env"); err != nil {
