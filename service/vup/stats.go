@@ -122,7 +122,7 @@ func GetStatsCommand(uid int64, limit int, command string) (*Analysis, error) {
 	}, nil
 }
 
-func GetGlobalStats() (*GlobalStatistics, error) {
+func GetGlobalStats(top int) (*GlobalStatistics, error) {
 
 	s, err := statistics.GetListening()
 	if err != nil {
@@ -143,13 +143,13 @@ func GetGlobalStats() (*GlobalStatistics, error) {
 		return nil, err
 	}
 
-	mostDDBehaviourVups, err := GetMostBehaviourVups(3)
+	mostDDBehaviourVups, err := GetMostBehaviourVups(top)
 	if err != nil {
 		logger.Errorf("獲取dd行為最多的vup時出現錯誤: %v", err)
 		return nil, err
 	}
 
-	mostDDVups, err := GetMostDDVups(3)
+	mostDDVups, err := GetMostDDVups(top)
 	if err != nil {
 		logger.Errorf("獲取dd最多的vup時出現錯誤: %v", err)
 		return nil, err
@@ -159,9 +159,9 @@ func GetGlobalStats() (*GlobalStatistics, error) {
 		TotalVupRecorded:      recordCount,
 		CurrentListeningCount: listeningCount,
 		MostDDBehaviourVupCommands: map[string][]AnalysisUserInfo{
-			blive.DanmuMsg:         GetMostBehaviourVupsByCommand(3, blive.DanmuMsg),
-			blive.InteractWord:     GetMostBehaviourVupsByCommand(3, blive.InteractWord),
-			blive.SuperChatMessage: GetMostBehaviourVupsByCommand(3, blive.SuperChatMessage),
+			blive.DanmuMsg:         GetMostBehaviourVupsByCommand(top, blive.DanmuMsg),
+			blive.InteractWord:     GetMostBehaviourVupsByCommand(top, blive.InteractWord),
+			blive.SuperChatMessage: GetMostBehaviourVupsByCommand(top, blive.SuperChatMessage),
 		},
 		MostDDBehaviourVups: mostDDBehaviourVups,
 		MostDDVups:          mostDDVups,

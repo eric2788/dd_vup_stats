@@ -16,7 +16,19 @@ func Register(group *gin.RouterGroup) {
 }
 
 func GetGlobalStats(c *gin.Context) {
-	resp, err := vup.GetGlobalStats()
+
+	top, err := strconv.Atoi(c.DefaultQuery("top", "3"))
+
+	if err != nil {
+		logger.Error(err)
+		c.JSON(400, gin.H{
+			"code":    400,
+			"message": "top must be an integer",
+		})
+		return
+	}
+
+	resp, err := vup.GetGlobalStats(top)
 
 	if err != nil {
 		logger.Error(err)
