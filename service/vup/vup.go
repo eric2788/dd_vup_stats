@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"math"
-	"sync"
 	"time"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
@@ -16,13 +15,12 @@ import (
 
 var (
 	logger = logrus.WithField("service", "vup")
-	Caches = sync.Map{} // add caching
 )
 
 func IsVup(uid int64) (bool, error) {
 	var exist bool
 
-	if re, ok := Caches.Load(uid); ok {
+	if re, ok := db.Caches.Load(uid); ok {
 		return re.(bool), nil
 	}
 
@@ -37,7 +35,7 @@ func IsVup(uid int64) (bool, error) {
 		return false, err
 	}
 
-	Caches.Store(uid, exist)
+	db.Caches.Store(uid, exist)
 	return exist, nil
 }
 
@@ -211,7 +209,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 
 		userResps = append(userResps, &userResp)
 
-		Caches.Store(vup.Uid, true)
+		db.Caches.Store(vup.Uid, true)
 	}
 
 	return &ListResp{

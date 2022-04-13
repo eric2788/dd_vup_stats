@@ -6,8 +6,7 @@ import (
 	"golang.org/x/exp/maps"
 	"gorm.io/gorm/clause"
 	"time"
-	db2 "vup_dd_stats/service/db"
-	"vup_dd_stats/service/vup"
+	"vup_dd_stats/service/db"
 	"vup_dd_stats/utils/set"
 )
 
@@ -42,8 +41,8 @@ func fetchListeningInfo() {
 
 	Listening = &stats.Rooms
 
-	result := db2.Database.
-		Model(&db2.Vup{}).
+	result := db.Database.
+		Model(&db.Vup{}).
 		Where("room_id IN ?", stats.Rooms).
 		Select("room_id").
 		Find(&roomIds)
@@ -62,7 +61,7 @@ func fetchListeningInfo() {
 
 	roomSet := set.FromArray(roomIds)
 
-	toBeInsert := make(map[int64]*db2.Vup)
+	toBeInsert := make(map[int64]*db.Vup)
 
 	// 只新增未有記錄的vup
 	for _, room := range stats.Rooms {
@@ -92,11 +91,11 @@ func fetchListeningInfo() {
 		// 不是 vtb
 		if !found {
 			logger.Debugf("用戶不是vtb: %d", room)
-			vup.Caches.Store(liveInfo.UID, false)
+			db.Caches.Store(liveInfo.UID, false)
 			continue
 		}
 
-		v := &db2.Vup{
+		vup := &db.Vup{
 			Uid:           liveInfo.UID,
 			Name:          liveInfo.Name,
 			Face:          liveInfo.UserFace,
@@ -105,8 +104,8 @@ func fetchListeningInfo() {
 			Sign:          liveInfo.UserDescription,
 		}
 
-		vup.Caches.Store(liveInfo.UID, true)
-		toBeInsert[liveInfo.UID] = v
+		db.Caches.Store(liveInfo.UID, true)
+		toBeInsert[liveInfo.UID] = vup
 	}
 
 	if len(toBeInsert) == 0 {
@@ -116,7 +115,7 @@ func fetchListeningInfo() {
 
 	logger.Debugf("即將插入 %v 筆用戶資料到資料庫", len(toBeInsert))
 
-	result = db2.Database.
+	result = db.Database.
 		Clauses(clause.OnConflict{DoNothing: true}).
 		CreateInBatches(maps.Values(toBeInsert), len(toBeInsert))
 
