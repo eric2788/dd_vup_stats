@@ -7,16 +7,24 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"math"
+	"sync"
 	"time"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/statistics"
 )
 
-var logger = logrus.WithField("service", "vup")
+var (
+	logger = logrus.WithField("service", "vup")
+	vupMap = sync.Map{} // add caching
+)
 
 func IsVup(uid int64) (bool, error) {
 	var exist bool
+
+	if re, ok := vupMap.Load(uid); ok {
+		return re.(bool), nil
+	}
 
 	err := db.Database.
 		Model(&db.Vup{}).
@@ -29,6 +37,7 @@ func IsVup(uid int64) (bool, error) {
 		return false, err
 	}
 
+	vupMap.Store(uid, exist)
 	return exist, nil
 }
 
