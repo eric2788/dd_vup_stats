@@ -39,7 +39,9 @@ func Put(key string, value interface{}) error {
 func Get(key string) (interface{}, error) {
 	val, err := cli.Get(ctx, key).Result()
 	if err != nil {
-		log.Errorf("redis get error: %v", err)
+		if err != redis.Nil {
+			log.Errorf("redis get error: %v", err)
+		}
 		return nil, err
 	}
 	return val, nil
@@ -58,9 +60,6 @@ func PutUserIsVup(uid int64, isVup bool) error {
 func GetUserIsVup(uid int64) (bool, bool) {
 	val, err := Get(fmt.Sprintf("is_vup:%v", uid))
 	if err != nil {
-		if err != redis.Nil {
-			log.Errorf("redis get error: %v", err)
-		}
 		return false, false
 	}
 	return val == "1", true
