@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"math"
 	"time"
@@ -93,19 +94,24 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 
 	if !listening {
 
-		logrus.Debugf("%s is not listening", vup.Name)
+		var lastListen = &db.LastListen{
+			Uid:          vup.Uid,
+			LastListenAt: time.Now(),
+		}
 
-		var lastListen db.LastListen
-
+		// FirstOrCreate will throw duplicate entry error if the record already exists
 		err := db.Database.
 			Where("uid = ?", vup.Uid).
-			FirstOrInit(&lastListen, db.LastListen{
-				Uid:          vup.Uid,
-				LastListenAt: time.Now(),
-			}).Error
+			Find(lastListen).Error
+
+		if err == gorm.ErrRecordNotFound {
+			logrus.Debugf("Record of %v not found, create new one", vup.Name)
+			err = db.Database.Create(lastListen).Error
+		}
 
 		if err != nil {
 			logger.Errorf("嘗試插入最後監聽訊息時出現錯誤: %v", err)
+			logrus.Debugf("Record Insert Error, using first listen at")
 			lastListenAt = vup.FirstListenAt
 		} else {
 			lastListenAt = lastListen.LastListenAt
@@ -113,14 +119,16 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 
 	} else {
 
-		logrus.Debugf("%s is listening", vup.Name)
-
-		err := db.Database.
+		re := db.Database.
 			Clauses(clause.OnConflict{DoNothing: true}).
-			Delete(&db.LastListen{}, vup.Uid).Error
+			Delete(&db.LastListen{}, vup.Uid)
 
-		if err != nil {
-			logger.Errorf("嘗試刪除最後監聽訊息時出現錯誤: %v", err)
+		if re.Error != nil {
+			logger.Errorf("嘗試刪除最後監聽訊息時出現錯誤: %v", re.Error)
+		}
+
+		if re.RowsAffected > 0 {
+			logrus.Debugf("Successfully Delete %v record of %v because it is listening.", re.RowsAffected, vup.Name)
 		}
 
 	}

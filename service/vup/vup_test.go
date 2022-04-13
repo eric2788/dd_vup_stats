@@ -9,7 +9,7 @@ import (
 	"vup_dd_stats/service/statistics"
 )
 
-func aTestGetVups(t *testing.T) {
+func TestGetVups(t *testing.T) {
 	vups, err := GetVups(1, 3, true, "last_listened_at")
 	if err != nil {
 		t.Fatal(err)
@@ -25,15 +25,15 @@ func ATestGetVup(t *testing.T) {
 	jsonPrettyPrint(t, vup)
 }
 
-func aTestSearchVups(t *testing.T) {
-	vup, err := SearchVups("Official", 1, 3, "dd_count", true)
+func TestSearchVups(t *testing.T) {
+	vup, err := SearchVups("", 1, 3, "last_listened_at", true)
 	if err != nil {
 		t.Fatal(err)
 	}
 	jsonPrettyPrint(t, vup)
 }
 
-func ainit() {
+func init() {
 	logrus.SetLevel(logrus.DebugLevel)
 	if err := godotenv.Load("./../../.env"); err != nil {
 		logrus.Fatalf("Error while loading environment file: %v", err)
