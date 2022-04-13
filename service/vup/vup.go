@@ -20,8 +20,8 @@ var (
 func IsVup(uid int64) (bool, error) {
 	var exist bool
 
-	if re, ok := db.Caches.Load(uid); ok {
-		return re.(bool), nil
+	if re, ok := db.GetUserIsVup(uid); ok {
+		return re, nil
 	}
 
 	err := db.Database.
@@ -35,7 +35,9 @@ func IsVup(uid int64) (bool, error) {
 		return false, err
 	}
 
-	db.Caches.Store(uid, exist)
+	if err := db.PutUserIsVup(uid, exist); err != nil {
+		logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
+	}
 	return exist, nil
 }
 
@@ -75,11 +77,15 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 
 	// record not found
 	if vup.Uid == 0 {
-		db.Caches.Store(uid, false)
+		if err := db.PutUserIsVup(uid, false); err != nil {
+			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
+		}
 		return nil, nil
 	}
 
-	db.Caches.Store(uid, true)
+	if err := db.PutUserIsVup(uid, true); err != nil {
+		logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
+	}
 
 	listening := slices.Contains(listeningRooms, vup.RoomId)
 	lastListenAt := GetLastListen(&vup, listening)
@@ -216,7 +222,9 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 
 		userResps = append(userResps, &userResp)
 
-		db.Caches.Store(vup.Uid, true)
+		if err := db.PutUserIsVup(vup.Uid, true); err != nil {
+			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
+		}
 	}
 
 	return &ListResp{

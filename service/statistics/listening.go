@@ -91,7 +91,9 @@ func fetchListeningInfo() {
 		// 不是 vtb
 		if !found {
 			logger.Debugf("用戶不是vtb: %d", room)
-			db.Caches.Store(liveInfo.UID, false)
+			if err := db.PutUserIsVup(liveInfo.UID, false); err != nil {
+				logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
+			}
 			continue
 		}
 
@@ -104,7 +106,9 @@ func fetchListeningInfo() {
 			Sign:          liveInfo.UserDescription,
 		}
 
-		db.Caches.Store(liveInfo.UID, true)
+		if err := db.PutUserIsVup(liveInfo.UID, true); err != nil {
+			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
+		}
 		toBeInsert[liveInfo.UID] = vup
 	}
 

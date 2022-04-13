@@ -38,6 +38,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 
 	db.InitDB()
+	db.InitRedis()
 
 	go blive.StartWebSocket(ctx, wg)
 	go statistics.StartListenStats(ctx)

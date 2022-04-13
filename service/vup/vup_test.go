@@ -43,6 +43,7 @@ func ainit() {
 	}
 	statistics.Listening = &info.Rooms
 	db.InitDB()
+	db.InitRedis()
 }
 
 func jsonPrettyPrint(t *testing.T, v interface{}) {

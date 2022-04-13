@@ -6,13 +6,11 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"os"
-	"sync"
 )
 
 var (
 	log      = logrus.WithField("service", "db")
 	Database *gorm.DB
-	Caches   = sync.Map{}
 )
 
 func InitDB() {
