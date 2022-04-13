@@ -94,9 +94,17 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"code":    200,
-		"message": "success",
-		"data":    resp,
-	})
+	if resp == nil {
+		c.JSON(404, gin.H{
+			"code":    404,
+			"message": "vup not found",
+		})
+		return
+	} else {
+		c.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+			"data":    resp,
+		})
+	}
 }

@@ -66,13 +66,20 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
-		Where("vups.uid = ?", uid).
 		Find(&vup).
 		Error
 
 	if err != nil {
 		return nil, err
 	}
+
+	// record not found
+	if vup.Uid == 0 {
+		db.Caches.Store(uid, false)
+		return nil, nil
+	}
+
+	db.Caches.Store(uid, true)
 
 	listening := slices.Contains(listeningRooms, vup.RoomId)
 	lastListenAt := GetLastListen(&vup, listening)
