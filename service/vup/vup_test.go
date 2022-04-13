@@ -9,7 +9,7 @@ import (
 	"vup_dd_stats/service/statistics"
 )
 
-func TestGetVup(t *testing.T) {
+func aTestGetVup(t *testing.T) {
 	vup, err := GetVup(1042854135)
 	if err != nil {
 		t.Fatal(err)
@@ -32,7 +32,7 @@ func aTestSearchVups(t *testing.T) {
 	jsonPrettyPrint(t, vup)
 }
 
-func init() {
+func ainit() {
 	logrus.SetLevel(logrus.DebugLevel)
 	if err := godotenv.Load("./../../.env"); err != nil {
 		logrus.Fatalf("Error while loading environment file: %v", err)
