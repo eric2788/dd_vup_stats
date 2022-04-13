@@ -16,13 +16,13 @@ import (
 
 var (
 	logger = logrus.WithField("service", "vup")
-	vupMap = sync.Map{} // add caching
+	Caches = sync.Map{} // add caching
 )
 
 func IsVup(uid int64) (bool, error) {
 	var exist bool
 
-	if re, ok := vupMap.Load(uid); ok {
+	if re, ok := Caches.Load(uid); ok {
 		return re.(bool), nil
 	}
 
@@ -37,7 +37,7 @@ func IsVup(uid int64) (bool, error) {
 		return false, err
 	}
 
-	vupMap.Store(uid, exist)
+	Caches.Store(uid, exist)
 	return exist, nil
 }
 
@@ -210,6 +210,8 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 		userResp.LastListenedAt = lastListenAt
 
 		userResps = append(userResps, &userResp)
+
+		Caches.Store(vup.Uid, true)
 	}
 
 	return &ListResp{

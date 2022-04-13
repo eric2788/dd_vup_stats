@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm/clause"
 	"time"
 	db2 "vup_dd_stats/service/db"
+	"vup_dd_stats/service/vup"
 	"vup_dd_stats/utils/set"
 )
 
@@ -91,10 +92,11 @@ func fetchListeningInfo() {
 		// 不是 vtb
 		if !found {
 			logger.Debugf("用戶不是vtb: %d", room)
+			vup.Caches.Store(liveInfo.UID, false)
 			continue
 		}
 
-		vup := &db2.Vup{
+		v := &db2.Vup{
 			Uid:           liveInfo.UID,
 			Name:          liveInfo.Name,
 			Face:          liveInfo.UserFace,
@@ -103,7 +105,8 @@ func fetchListeningInfo() {
 			Sign:          liveInfo.UserDescription,
 		}
 
-		toBeInsert[liveInfo.UID] = vup
+		vup.Caches.Store(liveInfo.UID, true)
+		toBeInsert[liveInfo.UID] = v
 	}
 
 	if len(toBeInsert) == 0 {
