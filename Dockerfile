@@ -23,6 +23,7 @@ ENV MYSQL_PASS=changeme
 ENV MYSQL_DB=ddstats
 ENV WEBSOCKET_URL=ws://192.168.0.127:8888/ws/global
 ENV BILIGO_HOST=http://192.168.0.127:8888
+ENV DEV_HOST=http://dev.example.com
 
 EXPOSE 8086
 
