@@ -42,6 +42,11 @@ func GetUsers(c *gin.Context) {
 		return
 	}
 
+	// 每頁最高拿到50筆
+	if size > 50 {
+		size = 50
+	}
+
 	desc := c.DefaultQuery("desc", "true") == "true"
 	orderBy := c.DefaultQuery("orderBy", "last_listened_at")
 

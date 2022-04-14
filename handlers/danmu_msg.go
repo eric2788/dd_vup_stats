@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
@@ -62,7 +63,7 @@ func danmuMsg(data *blive.LiveData) error {
 		Command:   blive.DanmuMsg,
 		Display:   display,
 		Image: sql.NullString{
-			String: imageUrl,
+			String: strings.Replace(imageUrl, "http://", "https://", -1),
 			Valid:  imageUrl != "",
 		},
 	}

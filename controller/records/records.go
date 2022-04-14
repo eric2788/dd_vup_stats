@@ -38,6 +38,11 @@ func GetSelfRecords(c *gin.Context) {
 		return
 	}
 
+	// 最高拿到100
+	if limit > 100 {
+		limit = 100
+	}
+
 	resp, err := vup.GetTopSelfRecords(userId, limit)
 
 	if err != nil {
@@ -78,6 +83,11 @@ func GetTopRecords(c *gin.Context) {
 			"message": "limit must be a number",
 		})
 		return
+	}
+
+	// 最高拿到100
+	if limit > 100 {
+		limit = 100
 	}
 
 	resp, err := vup.GetTopDDRecords(userId, limit)

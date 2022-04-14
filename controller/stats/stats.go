@@ -28,6 +28,11 @@ func GetGlobalStats(c *gin.Context) {
 		return
 	}
 
+	// 最高拿到 50
+	if top > 50 {
+		top = 50
+	}
+
 	resp, err := vup.GetGlobalStats(top)
 
 	if err != nil {
@@ -72,6 +77,11 @@ func GetUserStatsCommand(c *gin.Context) {
 		return
 	}
 
+	// 最高拿到 50
+	if limit > 50 {
+		limit = 50
+	}
+
 	resp, err := vup.GetStatsCommand(userId, limit, command)
 
 	if err != nil {
@@ -112,6 +122,11 @@ func GetUserStats(c *gin.Context) {
 			"message": "limit must be a number",
 		})
 		return
+	}
+
+	// 最高拿到 50
+	if limit > 50 {
+		limit = 50
 	}
 
 	resp, err := vup.GetStats(userId, limit)
