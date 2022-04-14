@@ -2,6 +2,7 @@ package statistics
 
 import (
 	"context"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
 	"gorm.io/gorm/clause"
@@ -19,14 +20,98 @@ func StartListenStats(ctx context.Context) {
 	ticker := time.NewTicker(time.Minute * 1)
 	defer ticker.Stop()
 	go fetchListeningInfo()
+	go fetchVupListToRedis()
 	for {
 		select {
 		case <-ticker.C:
 			go fetchListeningInfo()
+			go fetchVupListToRedis()
+			go removeUnusedVupListFromRedis()
 		case <-ctx.Done():
 			return
 		}
 	}
+}
+
+func removeUnusedVupListFromRedis() {
+
+	cache, err := db.SetGet(db.VupListKey)
+
+	if err != nil {
+		logger.Errorf("從 redis 獲取 虛擬主播列表 緩存時出現錯誤: %v", err)
+		return
+	}
+
+	var vupList []string
+
+	err = db.Database.
+		Model(&db.Vup{}).
+		Where("uid IN (?)", cache).
+		Pluck("uid", &vupList).
+		Error
+
+	if err != nil {
+		logger.Errorf("從資料庫獲取 虛擬主播列表時出現錯誤: %v", err)
+		return
+	}
+
+	cacheSet, vupSet := set.FromArray(cache), set.FromArray(vupList)
+
+	i := 0
+	for _, v := range cacheSet.Difference(vupSet).ToArray() {
+		err = db.SetRemove(db.VupListKey, v)
+		if err != nil {
+			logger.Errorf("從 redis 移除 %v 出虛擬主播列表時出現錯誤: %v", v, err)
+			return
+		} else {
+			i++
+		}
+	}
+
+	if i > 0 {
+		logger.Infof("已成功把 %v 個不再為虛擬主播的用戶移除出 redis 緩存。", i)
+	} else {
+		logger.Debugf("已完成, 沒有需要移除出 redis 緩存的用戶。")
+	}
+}
+
+func fetchVupListToRedis() {
+
+	cache, err := db.SetGet(db.VupListKey)
+
+	if err != nil {
+		logger.Errorf("從 redis 獲取 虛擬主播列表 緩存時出現錯誤: %v", err)
+		cache = make([]string, 0)
+	}
+
+	logger.Debugf("從 redis 獲取到的虛擬主播列表數量: %v", len(cache))
+
+	var vupList []int64
+
+	re := db.Database.Model(&db.Vup{})
+
+	if len(cache) > 0 {
+		re = re.Where("uid NOT IN (?)", cache)
+	}
+
+	re = re.Pluck("uid", &vupList)
+
+	if re.Error != nil {
+		logger.Errorf("從資料庫獲取vup列表錯誤: %v", re.Error)
+		return
+	}
+
+	logger.Debugf("已成功提取 %v 列虛擬主播，即將加入到 redis 緩存...", re.RowsAffected)
+
+	for _, vup := range vupList {
+		err = db.SetAdd(db.VupListKey, fmt.Sprintf("%d", vup))
+		if err != nil {
+			logger.Errorf("添加 vup %v 到 redis 緩存失敗: %v", vup, err)
+		} else {
+			logger.Debugf("成功添加 vup %v 到 redis 緩存。", vup)
+		}
+	}
+
 }
 
 func fetchListeningInfo() {
@@ -91,9 +176,6 @@ func fetchListeningInfo() {
 		// 不是 vtb
 		if !found {
 			logger.Debugf("用戶不是vtb: %d", room)
-			if err := db.PutUserIsVup(liveInfo.UID, false); err != nil {
-				logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
-			}
 			continue
 		}
 
@@ -106,7 +188,7 @@ func fetchListeningInfo() {
 			Sign:          liveInfo.UserDescription,
 		}
 
-		if err := db.PutUserIsVup(liveInfo.UID, true); err != nil {
+		if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", liveInfo.UID)); err != nil {
 			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
 		}
 		toBeInsert[liveInfo.UID] = vup

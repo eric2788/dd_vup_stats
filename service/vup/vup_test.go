@@ -32,6 +32,23 @@ func aTestSearchVups(t *testing.T) {
 	jsonPrettyPrint(t, vup)
 }
 
+func aTestDeleteNonVups(t *testing.T) {
+	vtbs, err := statistics.GetVtbListVtbMoe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	vtbUids := make([]int64, len(vtbs))
+	for i, vtb := range vtbs {
+		vtbUids[i] = vtb.Mid
+	}
+	result := db.Database.Delete(&db.Vup{}, "uid NOT IN (?)", vtbUids)
+
+	if result.Error != nil {
+		t.Fatal(result.Error)
+	}
+	t.Logf("已成功刪除 %v 列非虛擬主播。", result.RowsAffected)
+}
+
 func ainit() {
 	logrus.SetLevel(logrus.DebugLevel)
 	if err := godotenv.Load("./../../.env"); err != nil {

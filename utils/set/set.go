@@ -36,6 +36,18 @@ func (s *Set[K]) Has(value K) bool {
 	return ok
 }
 
+func (s *Set[K]) Difference(other *Set[K]) *Set[K] {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	diff := New[K]()
+	for k, _ := range s.m {
+		if !other.Has(k) {
+			diff.Add(k)
+		}
+	}
+	return diff
+}
+
 func (s *Set[K]) Clear() {
 	s.mu.Lock()
 	defer s.mu.Unlock()

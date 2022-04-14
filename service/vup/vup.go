@@ -2,6 +2,7 @@ package vup
 
 import (
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
@@ -18,11 +19,14 @@ var (
 )
 
 func IsVup(uid int64) (bool, error) {
-	var exist bool
 
-	if re, ok := db.GetUserIsVup(uid); ok {
+	if re, err := db.SetContain(db.VupListKey, fmt.Sprintf("%d", uid)); err == nil {
 		return re, nil
+	} else if err != nil && err != redis.Nil {
+		logger.Errorf("從 redis 提取緩存錯誤: %v, 將使用資料庫", err)
 	}
+
+	var exist bool
 
 	err := db.Database.
 		Model(&db.Vup{}).
@@ -35,9 +39,12 @@ func IsVup(uid int64) (bool, error) {
 		return false, err
 	}
 
-	if err := db.PutUserIsVup(uid, exist); err != nil {
-		logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
+	if exist {
+		if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", uid)); err != nil {
+			logger.Errorf("儲存用戶 %v 到 redis 時出現錯誤: %v", uid, err)
+		}
 	}
+
 	return exist, nil
 }
 
@@ -77,13 +84,10 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 
 	// record not found
 	if vup.Uid == 0 {
-		if err := db.PutUserIsVup(uid, false); err != nil {
-			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
-		}
 		return nil, nil
 	}
 
-	if err := db.PutUserIsVup(uid, true); err != nil {
+	if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", uid)); err != nil {
 		logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
 	}
 
@@ -222,7 +226,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 
 		userResps = append(userResps, &userResp)
 
-		if err := db.PutUserIsVup(vup.Uid, true); err != nil {
+		if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", vup.Uid)); err != nil {
 			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
 		}
 	}
