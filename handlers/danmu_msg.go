@@ -45,6 +45,19 @@ func danmuMsg(data *blive.LiveData) error {
 		return nil
 	}
 
+	// 再檢查被DD的人 是否在 vup 資料表中，如果是就記錄
+	exist, err = vup.IsVup(targetUid)
+
+	if err != nil {
+		return err
+	}
+
+	// 不知名用戶
+	if !exist {
+		logger.Debugf("目標用戶 %v 不是 vup 用戶, 已略過。", uname)
+		return nil
+	}
+
 	var imageUrl = ""
 	display := fmt.Sprintf("%s 在 %s 的直播间发送了一则消息: %s", uname, data.LiveInfo.Name, danmu)
 
