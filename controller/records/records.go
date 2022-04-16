@@ -52,7 +52,7 @@ func GetGlobalRecords(c *gin.Context) {
 
 	showSelf := c.DefaultQuery("showSelf", "true") == "true"
 
-	records, err := vup.GetGlobalRecords(query, pageSize, page, showSelf)
+	records, err := vup.GetGlobalRecords(query, page, pageSize, showSelf)
 
 	if err != nil {
 		logger.Warn(err)
