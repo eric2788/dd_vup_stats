@@ -15,11 +15,11 @@ func aTestRemoveUnsedVups(t *testing.T) {
 	removeUnusedVupListFromRedis()
 }
 
-func TestFetchListeningInfo(t *testing.T) {
+func aTestFetchListeningInfo(t *testing.T) {
 	fetchListeningInfo()
 }
 
-func init() {
+func ainit() {
 	logrus.SetLevel(logrus.DebugLevel)
 	if err := godotenv.Load("./../../.env"); err != nil {
 		logrus.Fatalf("Error while loading environment file: %v", err)

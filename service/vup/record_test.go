@@ -17,3 +17,19 @@ func ATestGetTopSelfRecords(t *testing.T) {
 	}
 	jsonPrettyPrint(t, be)
 }
+
+func ATestGetTopGuestRecords(t *testing.T) {
+	be, err := GetTopGuestRecords(198297, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonPrettyPrint(t, be)
+}
+
+func ATestGetGlobalRecords(t *testing.T) {
+	be, err := GetGlobalRecords("", 1, 5, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonPrettyPrint(t, be)
+}

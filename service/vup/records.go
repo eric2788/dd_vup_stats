@@ -60,7 +60,7 @@ func GetTopSelfRecords(uid int64, limit int) ([]db.Behaviour, error) {
 	return behaviours, nil
 }
 
-func GetGlobalRecords(search string, page, pageSize int) (*ListResp[db.Behaviour], error) {
+func GetGlobalRecords(search string, page, pageSize int, showSelf bool) (*ListResp[db.Behaviour], error) {
 
 	// ensure page is valid
 	page = int(math.Max(1, float64(page)))
@@ -70,9 +70,15 @@ func GetGlobalRecords(search string, page, pageSize int) (*ListResp[db.Behaviour
 
 	var behaviours []db.Behaviour
 
-	err := db.Database.
-		Order("created_at desc").
-		Where("display like ?", fmt.Sprintf("%%%s%%", search)).
+	r := db.Database.Order("created_at desc")
+
+	if showSelf {
+		r = r.Where("display like ?", fmt.Sprintf("%%%s%%", search))
+	} else {
+		r = r.Where("display like ? and uid != target_uid", fmt.Sprintf("%%%s%%", search))
+	}
+
+	err := r.
 		Offset((page - 1) * pageSize).
 		Limit(pageSize).
 		Find(&behaviours).
