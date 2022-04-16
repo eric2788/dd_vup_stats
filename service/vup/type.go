@@ -5,12 +5,12 @@ import (
 )
 
 type (
-	ListResp struct {
-		Page    int         `json:"page"`
-		Size    int         `json:"size"`
-		MaxPage int64       `json:"max_page"`
-		Total   int64       `json:"total"`
-		List    []*UserResp `json:"list"`
+	ListResp[K any] struct {
+		Page    int   `json:"page"`
+		Size    int   `json:"size"`
+		MaxPage int64 `json:"max_page"`
+		Total   int64 `json:"total"`
+		List    []K   `json:"list"`
 	}
 
 	UserResp struct {

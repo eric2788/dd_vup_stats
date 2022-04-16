@@ -160,7 +160,13 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 	return lastListenAt
 }
 
-func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*ListResp, error) {
+func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*ListResp[UserResp], error) {
+
+	// ensure page is valid
+	page = int(math.Max(1, float64(page)))
+
+	//ensure pageSize is valid
+	pageSize = int(math.Max(1, float64(pageSize)))
 
 	var vups []UserInfo
 
@@ -208,7 +214,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 		return nil, err
 	}
 
-	var userResps []*UserResp
+	var userResps []UserResp
 
 	for _, vup := range vups {
 
@@ -224,17 +230,17 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 		userResp.Listening = listening
 		userResp.LastListenedAt = lastListenAt
 
-		userResps = append(userResps, &userResp)
+		userResps = append(userResps, userResp)
 
 		if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", vup.Uid)); err != nil {
 			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
 		}
 	}
 
-	return &ListResp{
+	return &ListResp[UserResp]{
 		Page:    page,
 		Size:    pageSize,
-		MaxPage: int64(math.Ceil(float64(totalSearchCount)/float64(pageSize))) + 1,
+		MaxPage: int64(math.Ceil(float64(totalSearchCount) / float64(pageSize))),
 		Total:   totalSearchCount,
 		List:    userResps,
 	}, nil
