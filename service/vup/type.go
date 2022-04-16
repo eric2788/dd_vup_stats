@@ -2,6 +2,7 @@ package vup
 
 import (
 	"time"
+	"vup_dd_stats/service/db"
 )
 
 type (
@@ -11,6 +12,11 @@ type (
 		MaxPage int64 `json:"max_page"`
 		Total   int64 `json:"total"`
 		List    []K   `json:"list"`
+	}
+
+	RecordResp struct {
+		db.Behaviour
+		VupFace string `json:"vup_face"`
 	}
 
 	UserResp struct {

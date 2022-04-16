@@ -26,7 +26,7 @@ func ATestGetTopGuestRecords(t *testing.T) {
 	jsonPrettyPrint(t, be)
 }
 
-func ATestGetGlobalRecords(t *testing.T) {
+func aTestGetGlobalRecords(t *testing.T) {
 	be, err := GetGlobalRecords("", 1, 5, false)
 	if err != nil {
 		t.Fatal(err)

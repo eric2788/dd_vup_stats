@@ -60,7 +60,7 @@ func GetTopSelfRecords(uid int64, limit int) ([]db.Behaviour, error) {
 	return behaviours, nil
 }
 
-func GetGlobalRecords(search string, page, pageSize int, showSelf bool) (*ListResp[db.Behaviour], error) {
+func GetGlobalRecords(search string, page, pageSize int, showSelf bool) (*ListResp[RecordResp], error) {
 
 	// ensure page is valid
 	page = int(math.Max(1, float64(page)))
@@ -68,20 +68,23 @@ func GetGlobalRecords(search string, page, pageSize int, showSelf bool) (*ListRe
 	//ensure pageSize is valid
 	pageSize = int(math.Max(1, float64(pageSize)))
 
-	var behaviours []db.Behaviour
+	var records []RecordResp
 
-	r := db.Database.Order("created_at desc")
+	r := db.Database.Model(&db.Behaviour{})
 
 	if showSelf {
-		r = r.Where("display like ?", fmt.Sprintf("%%%s%%", search))
+		r = r.Where("behaviours.display like ?", fmt.Sprintf("%%%s%%", search))
 	} else {
-		r = r.Where("display like ? and uid != target_uid", fmt.Sprintf("%%%s%%", search))
+		r = r.Where("behaviours.display like ? and behaviours.uid != behaviours.target_uid", fmt.Sprintf("%%%s%%", search))
 	}
 
 	err := r.
+		Select("behaviours.*, vups.face as vup_face").
+		Joins("left join vups on vups.uid = behaviours.uid").
 		Offset((page - 1) * pageSize).
 		Limit(pageSize).
-		Find(&behaviours).
+		Order("behaviours.created_at desc").
+		Find(&records).
 		Error
 
 	if err != nil {
@@ -100,9 +103,9 @@ func GetGlobalRecords(search string, page, pageSize int, showSelf bool) (*ListRe
 		return nil, err
 	}
 
-	return &ListResp[db.Behaviour]{
+	return &ListResp[RecordResp]{
 		Total:   totalSearchCount,
-		List:    behaviours,
+		List:    records,
 		Page:    page,
 		Size:    pageSize,
 		MaxPage: int64(math.Ceil(float64(totalSearchCount) / float64(pageSize))),
