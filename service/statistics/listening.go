@@ -128,7 +128,7 @@ func fetchListeningInfo() {
 
 	result := db.Database.
 		Model(&db.Vup{}).
-		Where("room_id IN ?", stats.Rooms).
+		Where("room_id IN (?)", stats.Rooms).
 		Select("room_id").
 		Find(&roomIds)
 
@@ -136,6 +136,8 @@ func fetchListeningInfo() {
 		logger.Errorf("從資料庫請求數據時出現錯誤: %v", result.Error)
 		return
 	}
+
+	logger.Debugf("已成功從 %v 個監聽虛擬主播的房間中提取 %v 個房間在資料庫的監聽數據。", len(stats.Rooms), len(roomIds))
 
 	vtbList, err := GetVtbListVtbMoe()
 
@@ -148,13 +150,16 @@ func fetchListeningInfo() {
 
 	toBeInsert := make(map[int64]*db.Vup)
 
+	userExist, userNotVtb := 0, 0
+
 	// 只新增未有記錄的vup
 	for _, room := range stats.Rooms {
 
 		exist := roomSet.Has(room)
 
 		if exist {
-			logger.Debugf("用戶已存在: %d", room)
+			userExist += 1
+			//logger.Debugf("用戶已存在: %d", room)
 			continue
 		}
 
@@ -175,7 +180,8 @@ func fetchListeningInfo() {
 
 		// 不是 vtb
 		if !found {
-			logger.Debugf("用戶不是vtb: %d", room)
+			userNotVtb += 1
+			logger.Debugf("用戶不是vtb: %d (%d)", room, liveInfo.UID)
 			continue
 		}
 
@@ -199,7 +205,7 @@ func fetchListeningInfo() {
 		return
 	}
 
-	logger.Debugf("即將插入 %v 筆用戶資料到資料庫", len(toBeInsert))
+	logger.Debugf("在 %v 個正在監聽的房間中，有 %v 個為資料庫已存在，有 %v 個不是vtb, 有 %v 需要被加入到資料庫", len(stats.Rooms), userExist, userNotVtb, len(toBeInsert))
 
 	result = db.Database.
 		Clauses(clause.OnConflict{DoNothing: true}).
@@ -210,5 +216,7 @@ func fetchListeningInfo() {
 		return
 	} else if result.RowsAffected > 0 {
 		logger.Infof("已成功插入 %v 筆用戶資訊到資料庫, %v 筆資料被忽略。", result.RowsAffected, int64(len(toBeInsert))-result.RowsAffected)
+	} else {
+		logger.Debugf("有 %v 筆資料因為資料相同被忽略。", int64(len(toBeInsert))-result.RowsAffected)
 	}
 }
