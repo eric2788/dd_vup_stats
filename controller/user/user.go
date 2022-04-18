@@ -10,7 +10,7 @@ import (
 )
 
 var logger = logrus.WithField("controller", "user")
-var orderAllows = []string{"last_listened_at", "dd_count", "last_behaviour_at"}
+var orderAllows = []string{"last_listened_at", "dd_count", "last_behaviour_at", "first_listen_at"}
 
 func Register(gp *gin.RouterGroup) {
 	gp.GET("", GetUsers)

@@ -93,11 +93,15 @@ func GetGlobalRecords(search string, page, pageSize int, showSelf bool) (*ListRe
 
 	var totalSearchCount int64
 
-	err = db.Database.
-		Model(&db.Behaviour{}).
-		Where("display like ?", fmt.Sprintf("%%%s%%", search)).
-		Count(&totalSearchCount).
-		Error
+	r = db.Database.Model(&db.Behaviour{})
+
+	if showSelf {
+		r = r.Where("behaviours.display like ?", fmt.Sprintf("%%%s%%", search))
+	} else {
+		r = r.Where("behaviours.display like ? and behaviours.uid != behaviours.target_uid", fmt.Sprintf("%%%s%%", search))
+	}
+
+	err = r.Count(&totalSearchCount).Error
 
 	if err != nil {
 		return nil, err
