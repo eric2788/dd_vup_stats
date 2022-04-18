@@ -24,8 +24,8 @@ func aTestGetVup(t *testing.T) {
 	}
 }
 
-func TestSearchVups(t *testing.T) {
-	vup, err := SearchVups("", 1, 3, "last_listened_at", false)
+func aTestSearchVups(t *testing.T) {
+	vup, err := SearchVups("", 1, 3, "first_listen_at", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func aTestDeleteNonVups(t *testing.T) {
 	t.Logf("已成功刪除 %v 列非虛擬主播。", result.RowsAffected)
 }
 
-func init() {
+func ainit() {
 	logrus.SetLevel(logrus.DebugLevel)
 	if err := godotenv.Load("./../../.env"); err != nil {
 		logrus.Fatalf("Error while loading environment file: %v", err)
