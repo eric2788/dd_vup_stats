@@ -172,6 +172,14 @@ func fetchListeningInfo() {
 			continue
 		}
 
+		if exist, err := db.SetContain(db.VupListKey, fmt.Sprintf("%v", liveInfo.UID)); err == nil && exist {
+			userExist += 1
+			//logger.Debugf("用戶已存在: %d", room)
+			continue
+		} else if err != nil {
+			logger.Warnf("從 redis 緩存查找用戶時出現錯誤: %v", err)
+		}
+
 		found := false
 
 		if !cooldownList.Has(liveInfo.UID) {
