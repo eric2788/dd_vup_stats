@@ -15,6 +15,7 @@ var (
 	logger                = logrus.WithField("service", "statistics")
 	Listening    *[]int64 = &[]int64{}
 	cooldownList          = set.New[int64]()
+	allowRoles            = set.FromArray[int]([]int{1, 2, 3})
 )
 
 func StartListenStats(ctx context.Context) {
@@ -194,7 +195,7 @@ func fetchListeningInfo() {
 			}
 
 			// 有閃電的主播 + 不要机构认证
-			if user.Code == 0 && user.Data.Official.Role != 0 && user.Data.Official.Role != 3 {
+			if user.Code == 0 && allowRoles.Has(user.Data.Official.Role) {
 				found = true
 			}
 
