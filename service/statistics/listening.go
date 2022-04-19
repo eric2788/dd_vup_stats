@@ -193,8 +193,8 @@ func fetchListeningInfo() {
 				continue
 			}
 
-			// 有閃電的主播
-			if user.Code == 0 && user.Data.Official.Role != 0 {
+			// 有閃電的主播 + 不要机构认证
+			if user.Code == 0 && user.Data.Official.Role != 0 && user.Data.Official.Role != 3 {
 				found = true
 			}
 
