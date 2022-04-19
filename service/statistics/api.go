@@ -53,3 +53,18 @@ func GetVtbListVtbMoe() ([]VtbsMoeResp, error) {
 	err = json.Unmarshal(b, &resp)
 	return resp, err
 }
+
+func GetUserInfo(uid int64) (*UserResp, error) {
+	res, err := http.Get(fmt.Sprintf("https://api.bilibili.com/x/space/acc/info?mid=%v&jsonp=jsonp", uid))
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	var resp UserResp
+	err = json.Unmarshal(b, &resp)
+	return &resp, err
+}
