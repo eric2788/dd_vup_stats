@@ -12,7 +12,7 @@ type (
 	}
 
 	UserResp struct {
-		Code int64 `json:"code"`
+		Code int `json:"code"`
 		Data struct {
 			Mid      int64  `json:"mid"`
 			Name     string `json:"name"`
