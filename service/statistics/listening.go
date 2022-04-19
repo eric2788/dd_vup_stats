@@ -165,14 +165,14 @@ func fetchListeningInfo() {
 			continue
 		}
 
-		liveInfo, err := GetLiveInfo(room)
+		listenInfo, err := GetListeningInfo(room)
 
 		if err != nil {
 			logger.Errorf("刷取房間 %v 的直播資訊時出現錯誤: %v", room, err)
 			continue
 		}
 
-		if exist, err := db.SetContain(db.VupListKey, fmt.Sprintf("%v", liveInfo.UID)); err == nil && exist {
+		if exist, err := db.SetContain(db.VupListKey, fmt.Sprintf("%d", listenInfo.UID)); err == nil && exist {
 			userExist += 1
 			//logger.Debugf("用戶已存在: %d", room)
 			continue
@@ -182,22 +182,23 @@ func fetchListeningInfo() {
 
 		found := false
 
-		if !cooldownList.Has(liveInfo.UID) {
+		// listening info 沒有記載主播類型 + cooldown 列表內沒有該主播
+		if listenInfo.OfficialRole == -1 && !cooldownList.Has(listenInfo.UID) {
 
-			user, err := GetUserInfo(liveInfo.UID)
+			user, err := GetUserInfo(listenInfo.UID)
 
 			if err != nil {
-				logger.Errorf("刷取房間 %v 的用戶資訊 (%v) 時出現錯誤: %v", room, liveInfo.Name, err)
+				logger.Errorf("刷取房間 %v 的用戶資訊 (%v) 時出現錯誤: %v", room, listenInfo.Name, err)
 				continue
 			}
 
 			// 請求頻繁
 			if user.Code == -412 {
-				logger.Warnf("用戶 %v(%v) 請求頻繁，已添加冷卻列表(十分鐘後)。", liveInfo.Name, liveInfo.UID)
-				cooldownList.Add(liveInfo.UID)
+				logger.Warnf("用戶 %v(%v) 請求頻繁，已添加冷卻列表(十分鐘後)。", listenInfo.Name, listenInfo.UID)
+				cooldownList.Add(listenInfo.UID)
 				go func() {
 					<-time.After(time.Minute * 10)
-					cooldownList.Remove(liveInfo.UID)
+					cooldownList.Remove(listenInfo.UID)
 				}()
 				continue
 			}
@@ -207,13 +208,16 @@ func fetchListeningInfo() {
 				found = true
 			}
 
+			// listening info 有記載主播類型 + 是所屬主播類型
+		} else if listenInfo.OfficialRole != -1 && allowRoles.Has(listenInfo.OfficialRole) {
+			found = true
 		}
 
 		// 如果先前已發現是有閃電主播，則無需再做過濾
 		if !found {
 			// 否則檢查是否在 vtb list 內
 			for _, resp := range vtbList {
-				if resp.Mid == liveInfo.UID {
+				if resp.Mid == listenInfo.UID {
 					found = true
 					break
 				}
@@ -223,23 +227,23 @@ func fetchListeningInfo() {
 		// 不是 vtb
 		if !found {
 			userNotVtb += 1
-			logger.Debugf("用戶不是vtb或高能主播: %d (%d)", room, liveInfo.UID)
+			logger.Debugf("用戶不是vtb或高能主播: %d (%d)", room, listenInfo.UID)
 			continue
 		}
 
 		vup := &db.Vup{
-			Uid:           liveInfo.UID,
-			Name:          liveInfo.Name,
-			Face:          liveInfo.UserFace,
+			Uid:           listenInfo.UID,
+			Name:          listenInfo.Name,
+			Face:          listenInfo.UserFace,
 			FirstListenAt: time.Now(),
-			RoomId:        liveInfo.RoomId,
-			Sign:          liveInfo.UserDescription,
+			RoomId:        listenInfo.RoomId,
+			Sign:          listenInfo.UserDescription,
 		}
 
-		if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", liveInfo.UID)); err != nil {
+		if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", listenInfo.UID)); err != nil {
 			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
 		}
-		toBeInsert[liveInfo.UID] = vup
+		toBeInsert[listenInfo.UID] = vup
 	}
 
 	if len(toBeInsert) == 0 {

@@ -15,7 +15,7 @@ func updateInfo(data *blive.LiveData) error {
 		return nil
 	}
 
-	info, err := statistics.GetLiveInfo(data.LiveInfo.RoomId)
+	info, err := statistics.GetListeningInfo(data.LiveInfo.RoomId)
 
 	if err != nil {
 		logger.Warnf("刷新 %v 的用戶資訊時出現錯誤: %v, 已略過更新。", data.LiveInfo.Name, err)

@@ -24,7 +24,7 @@ func GetListening() (*ListeningStats, error) {
 	return stats, err
 }
 
-func GetLiveInfo(roomId int64) (*blive.LiveInfo, error) {
+func GetListeningInfo(roomId int64) (*blive.ListeningInfo, error) {
 	res, err := http.Get(fmt.Sprintf("%v/listening/%v", os.Getenv("BILIGO_HOST"), roomId))
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func GetLiveInfo(roomId int64) (*blive.LiveInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	info := &blive.LiveInfo{}
+	info := &blive.ListeningInfo{}
 	err = json.Unmarshal(b, info)
 	return info, err
 }

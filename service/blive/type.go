@@ -33,6 +33,11 @@ type (
 		UserDescription string  `json:"user_description"`
 	}
 
+	ListeningInfo struct {
+		LiveInfo
+		OfficialRole int `json:"official_role"`
+	}
+
 	SuperChatMessageData struct {
 		UID       int64  `json:"uid"`
 		Price     int    `json:"price"`
