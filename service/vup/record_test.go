@@ -18,10 +18,22 @@ func ATestGetTopSelfRecords(t *testing.T) {
 	jsonPrettyPrint(t, be)
 }
 
-func ATestGetTopGuestRecords(t *testing.T) {
+func aTestGetTopGuestRecords(t *testing.T) {
 	be, err := GetTopGuestRecords(198297, 5)
 	if err != nil {
 		t.Fatal(err)
+	}
+	jsonPrettyPrint(t, be)
+}
+
+func aTestGetTopGuestRecordsNF(t *testing.T) {
+	be, err := GetTopGuestRecords(123456789, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if be == nil {
+		t.Log("not found")
+		return
 	}
 	jsonPrettyPrint(t, be)
 }

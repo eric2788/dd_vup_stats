@@ -2,6 +2,7 @@ package vup
 
 import (
 	"fmt"
+	"gorm.io/gorm"
 	"math"
 	"vup_dd_stats/service/db"
 )
@@ -14,10 +15,12 @@ func GetTopDDRecords(uid int64, limit int) ([]db.Behaviour, error) {
 		Where("uid = ? and uid != target_uid", uid).
 		Order("created_at desc").
 		Limit(limit).
-		Find(&behaviours).
+		Take(&behaviours).
 		Error
 
-	if err != nil {
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -32,10 +35,12 @@ func GetTopGuestRecords(uid int64, limit int) ([]db.Behaviour, error) {
 		Where("target_uid = ? and uid != target_uid", uid).
 		Order("created_at desc").
 		Limit(limit).
-		Find(&behaviours).
+		Take(&behaviours).
 		Error
 
-	if err != nil {
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -53,7 +58,9 @@ func GetTopSelfRecords(uid int64, limit int) ([]db.Behaviour, error) {
 		Find(&behaviours).
 		Error
 
-	if err != nil {
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 

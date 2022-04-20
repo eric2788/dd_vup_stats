@@ -102,7 +102,7 @@ func GetUser(c *gin.Context) {
 	if resp == nil {
 		c.JSON(404, gin.H{
 			"code":    404,
-			"message": "vup not found",
+			"message": "user not found",
 		})
 		return
 	} else {

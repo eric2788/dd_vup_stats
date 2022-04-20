@@ -111,11 +111,20 @@ func GetRecordsByType(c *gin.Context) {
 			})
 			return
 		}
-		c.JSON(200, gin.H{
-			"code":    200,
-			"message": "success",
-			"data":    records,
-		})
+
+		if records == nil {
+			c.JSON(404, gin.H{
+				"code":    404,
+				"message": "user not found",
+			})
+		} else {
+			c.JSON(200, gin.H{
+				"code":    200,
+				"message": "success",
+				"data":    records,
+			})
+		}
+
 	} else {
 		c.JSON(400, gin.H{
 			"code":    400,

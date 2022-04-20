@@ -25,7 +25,7 @@ func aTestGetVup(t *testing.T) {
 }
 
 func aTestSearchVups(t *testing.T) {
-	vup, err := SearchVups("", 1, 3, "first_listen_at", true)
+	vup, err := SearchVups("", 1, 5, "last_listened_at", true)
 	if err != nil {
 		t.Fatal(err)
 	}

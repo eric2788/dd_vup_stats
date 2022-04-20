@@ -75,16 +75,13 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
-		Find(&vup).
+		Take(&vup).
 		Error
 
-	if err != nil {
-		return nil, err
-	}
-
-	// record not found
-	if vup.Uid == 0 {
+	if err == gorm.ErrRecordNotFound || vup.Uid == 0 {
 		return nil, nil
+	} else if err != nil {
+		return nil, err
 	}
 
 	if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", uid)); err != nil {
@@ -118,15 +115,15 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 
 	if !listening {
 
+		logger.Debugf("%v is not listening", vup.Name)
+
 		var lastListen = &db.LastListen{
 			Uid:          vup.Uid,
-			LastListenAt: time.Now(),
+			LastListenAt: lastListenAt,
 		}
 
 		// FirstOrCreate will throw duplicate entry error if the record already exists
-		err := db.Database.
-			Where("uid = ?", vup.Uid).
-			Find(lastListen).Error
+		err := db.Database.Take(lastListen, vup.Uid).Error
 
 		if err == gorm.ErrRecordNotFound {
 			logrus.Debugf("Record of %v not found, create new one", vup.Name)
@@ -136,12 +133,14 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 		if err != nil {
 			logger.Errorf("嘗試插入最後監聽訊息時出現錯誤: %v", err)
 			logrus.Debugf("Record Insert Error, using first listen at")
-			lastListenAt = vup.FirstListenAt
+			return vup.FirstListenAt
 		} else {
-			lastListenAt = lastListen.LastListenAt
+			return lastListen.LastListenAt
 		}
 
 	} else {
+
+		logger.Debugf("%v is listening", vup.Name)
 
 		re := db.Database.
 			Clauses(clause.OnConflict{DoNothing: true}).
