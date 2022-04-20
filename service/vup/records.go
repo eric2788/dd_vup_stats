@@ -16,7 +16,7 @@ func GetTopDDRecords(uid int64, limit int) ([]db.Behaviour, error) {
 		Where("uid = ? and uid != target_uid", uid).
 		Order("created_at desc").
 		Limit(limit).
-		Take(&behaviours).
+		Find(&behaviours).
 		Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -36,7 +36,7 @@ func GetTopGuestRecords(uid int64, limit int) ([]db.Behaviour, error) {
 		Where("target_uid = ? and uid != target_uid", uid).
 		Order("created_at desc").
 		Limit(limit).
-		Take(&behaviours).
+		Find(&behaviours).
 		Error
 
 	if err == gorm.ErrRecordNotFound {
