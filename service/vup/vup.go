@@ -1,6 +1,7 @@
 package vup
 
 import (
+	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
@@ -78,7 +79,7 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 		Take(&vup).
 		Error
 
-	if err == gorm.ErrRecordNotFound || vup.Uid == 0 {
+	if errors.Is(err, gorm.ErrRecordNotFound) || vup.Uid == 0 {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -125,7 +126,7 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 		// FirstOrCreate will throw duplicate entry error if the record already exists
 		err := db.Database.Take(lastListen, vup.Uid).Error
 
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			logrus.Debugf("Record of %v not found, create new one", vup.Name)
 			err = db.Database.Create(lastListen).Error
 		}

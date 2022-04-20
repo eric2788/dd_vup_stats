@@ -1,6 +1,7 @@
 package vup
 
 import (
+	"errors"
 	"fmt"
 	"gorm.io/gorm"
 	"math"
@@ -18,7 +19,7 @@ func GetTopDDRecords(uid int64, limit int) ([]db.Behaviour, error) {
 		Take(&behaviours).
 		Error
 
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err

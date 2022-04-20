@@ -5,6 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"os"
 )
 
@@ -32,7 +33,9 @@ func InitDB() {
 		mysqlDB,
 	)
 
-	db, err := gorm.Open(mysql.Open(dataSource))
+	db, err := gorm.Open(mysql.Open(dataSource), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
 
 	if err != nil {
 		log.Fatalf("啟動資料庫時出現錯誤: %v", err)
