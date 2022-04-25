@@ -26,7 +26,6 @@ func roomEnter(data *blive.LiveData) error {
 
 	// 不知名用戶
 	if !exist {
-		logger.Debugf("用戶 %v 不是 vup 用戶, 已略過。", uname)
 		return nil
 	}
 
@@ -39,7 +38,6 @@ func roomEnter(data *blive.LiveData) error {
 
 	// 不知名用戶
 	if !exist {
-		logger.Debugf("用戶 %v 不是 vup 用戶, 已略過。", uname)
 		return nil
 	}
 

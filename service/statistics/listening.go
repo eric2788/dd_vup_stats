@@ -147,8 +147,7 @@ func fetchListeningInfo() {
 	result := db.Database.
 		Model(&db.Vup{}).
 		Where("room_id IN (?)", stats.Rooms).
-		Select("room_id").
-		Find(&roomIds)
+		Pluck("room_id", &roomIds)
 
 	if result.Error != nil {
 		logger.Errorf("從資料庫請求數據時出現錯誤: %v", result.Error)
@@ -248,7 +247,7 @@ func fetchListeningInfo() {
 		// 不是 vtb
 		if !found {
 			userNotVtb += 1
-			logger.Debugf("用戶不是vtb或高能主播: %d (%d)", room, listenInfo.UID)
+			//logger.Debugf("用戶不是vtb或高能主播: %d (%d)", room, listenInfo.UID)
 			continue
 		}
 
@@ -259,12 +258,6 @@ func fetchListeningInfo() {
 			FirstListenAt: time.Now(),
 			RoomId:        listenInfo.RoomId,
 			Sign:          listenInfo.UserDescription,
-		}
-
-		if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", listenInfo.UID)); err != nil {
-			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
-		} else {
-			logger.Debugf("從 fetchListeningInfo 新增了 %v 到 redis", listenInfo.UID)
 		}
 
 		toBeInsert[listenInfo.UID] = vup
@@ -286,7 +279,17 @@ func fetchListeningInfo() {
 		logger.Errorf("插入數據到資料庫時出現錯誤: %v", result.Error)
 		return
 	} else if result.RowsAffected > 0 {
+
 		logger.Infof("已成功插入 %v 筆用戶資訊到資料庫, %v 筆資料被忽略。", result.RowsAffected, int64(len(toBeInsert))-result.RowsAffected)
+
+		for _, vup := range toBeInsert {
+			if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", vup.Uid)); err != nil {
+				logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
+			} else {
+				logger.Debugf("從 fetchListeningInfo 新增了 %v 到 redis", vup.Uid)
+			}
+		}
+
 	} else {
 		logger.Debugf("有 %v 筆資料因為資料相同被忽略。", int64(len(toBeInsert))-result.RowsAffected)
 	}
