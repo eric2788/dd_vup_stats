@@ -114,8 +114,6 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 
 	if !listening {
 
-		logger.Debugf("%v is not listening", vup.Name)
-
 		var lastListen = &db.LastListen{
 			Uid:          vup.Uid,
 			LastListenAt: lastListenAt,
@@ -138,8 +136,6 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 		}
 
 	} else {
-
-		logger.Debugf("%v is listening", vup.Name)
 
 		re := db.Database.
 			Clauses(clause.OnConflict{DoNothing: true}).
