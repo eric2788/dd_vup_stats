@@ -85,10 +85,6 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 		return nil, err
 	}
 
-	if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", uid)); err != nil {
-		logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
-	}
-
 	listening := slices.Contains(listeningRooms, vup.RoomId)
 	lastListenAt := GetLastListen(&vup, listening)
 
@@ -231,10 +227,6 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 		userResp.LastListenedAt = lastListenAt
 
 		userResps = append(userResps, userResp)
-
-		if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", vup.Uid)); err != nil {
-			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
-		}
 	}
 
 	return &ListResp[UserResp]{

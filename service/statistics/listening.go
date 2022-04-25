@@ -71,6 +71,9 @@ func removeUnusedVupListFromRedis() {
 		return
 	}
 
+	logger.Debugf("cache: %v", cache)
+	logger.Debugf("vupList: %v", vupList)
+
 	cacheSet, vupSet := set.FromArray(cache), set.FromArray(vupList)
 
 	i := 0
@@ -262,6 +265,7 @@ func fetchListeningInfo() {
 		if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", listenInfo.UID)); err != nil {
 			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
 		}
+
 		toBeInsert[listenInfo.UID] = vup
 	}
 
