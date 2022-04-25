@@ -44,6 +44,19 @@ func removeUnusedVupListFromRedis() {
 		return
 	}
 
+	if blacklist, err := db.SetGet(db.VupBlackListKey); err == nil && len(blacklist) > 0 {
+		re := db.Database.
+			Where("uid IN (?)", blacklist).
+			Delete(db.Vup{})
+
+		if re.Error != nil {
+			logger.Errorf("刪除虛擬主播列表時出現錯誤: %v", re.Error)
+			return
+		} else if re.RowsAffected > 0 {
+			logger.Infof("已成功刪除 %v 筆在黑名單內的虛擬主播。", re.RowsAffected)
+		}
+	}
+
 	var vupList []string
 
 	err = db.Database.
@@ -152,7 +165,7 @@ func fetchListeningInfo() {
 
 	toBeInsert := make(map[int64]*db.Vup)
 
-	userExist, userNotVtb := 0, 0
+	userExist, userNotVtb, userBlackListed := 0, 0, 0
 
 	// 只新增未有記錄的vup
 	for _, room := range stats.Rooms {
@@ -178,6 +191,11 @@ func fetchListeningInfo() {
 			continue
 		} else if err != nil {
 			logger.Warnf("從 redis 緩存查找用戶時出現錯誤: %v", err)
+		}
+
+		if exist, err := db.SetContain(db.VupBlackListKey, fmt.Sprintf("%d", listenInfo.UID)); err == nil && exist {
+			userBlackListed += 1
+			continue
 		}
 
 		found := false
@@ -251,7 +269,8 @@ func fetchListeningInfo() {
 		return
 	}
 
-	logger.Debugf("在 %v 個正在監聽的房間中，有 %v 個為資料庫已存在，有 %v 個不是vtb, 有 %v 需要被加入到資料庫", len(stats.Rooms), userExist, userNotVtb, len(toBeInsert))
+	logger.Debugf("在 %v 個正在監聽的房間中，有 %v 個為資料庫已存在，有 %v 個不是vtb, 有 %v 個在黑名單內, 有 %v 需要被加入到資料庫",
+		len(stats.Rooms), userExist, userNotVtb, userBlackListed, len(toBeInsert))
 
 	result = db.Database.
 		Clauses(clause.OnConflict{DoNothing: true}).

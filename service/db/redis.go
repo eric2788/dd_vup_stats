@@ -13,6 +13,7 @@ var (
 )
 
 const VupListKey = "vup_list"
+const VupBlackListKey = "vup_blacklist"
 
 func InitRedis() {
 	log.Info("正在初始化 redis..")
