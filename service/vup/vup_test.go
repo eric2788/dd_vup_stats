@@ -41,7 +41,7 @@ func aTestDeleteNonVups(t *testing.T) {
 	for i, vtb := range vtbs {
 		vtbUids[i] = vtb.Mid
 	}
-	result := db.Database.Delete(&db.Vup{}, "uid NOT IN (?)", vtbUids)
+	result := db.Database.Delete(&db.Vup{}, "uid NOT IN ?", vtbUids)
 
 	if result.Error != nil {
 		t.Fatal(result.Error)

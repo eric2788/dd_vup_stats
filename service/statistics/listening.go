@@ -46,7 +46,7 @@ func removeUnusedVupListFromRedis() {
 
 	if blacklist, err := db.SetGet(db.VupBlackListKey); err == nil && len(blacklist) > 0 {
 		re := db.Database.
-			Where("uid IN (?)", blacklist).
+			Where("uid IN ?", blacklist).
 			Delete(db.Vup{})
 
 		if re.Error != nil {
@@ -61,7 +61,7 @@ func removeUnusedVupListFromRedis() {
 
 	err = db.Database.
 		Model(&db.Vup{}).
-		Where("uid IN (?)", cache).
+		Where("uid IN ?", cache).
 		Pluck("uid", &vupList).
 		Error
 
@@ -109,7 +109,7 @@ func fetchVupListToRedis() {
 	re := db.Database.Model(&db.Vup{})
 
 	if len(cache) > 0 {
-		re = re.Where("uid NOT IN (?)", cache)
+		re = re.Where("uid NOT IN ?", cache)
 	}
 
 	re = re.Pluck("uid", &vupList)
@@ -146,7 +146,7 @@ func fetchListeningInfo() {
 
 	result := db.Database.
 		Model(&db.Vup{}).
-		Where("room_id IN (?)", stats.Rooms).
+		Where("room_id IN ?", stats.Rooms).
 		Pluck("room_id", &roomIds)
 
 	if result.Error != nil {
