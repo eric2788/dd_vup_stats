@@ -33,8 +33,16 @@ func InitDB() {
 		mysqlDB,
 	)
 
+	var logLevel logger.LogLevel
+
+	if os.Getenv("GIN_MODE") != "release" {
+		logLevel = logger.Info
+	} else {
+		logLevel = logger.Silent
+	}
+
 	db, err := gorm.Open(mysql.Open(dataSource), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
+		Logger: logger.Default.LogMode(logLevel),
 	})
 
 	if err != nil {

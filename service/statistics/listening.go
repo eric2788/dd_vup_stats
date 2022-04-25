@@ -147,7 +147,10 @@ func fetchListeningInfo() {
 	result := db.Database.
 		Model(&db.Vup{}).
 		Where("room_id IN ?", stats.Rooms).
-		Pluck("room_id", &roomIds)
+		Pluck("room_id", &roomIds).
+		Debug()
+
+	logger.Debugf("rows affect: %v", result.RowsAffected)
 
 	if result.Error != nil {
 		logger.Errorf("從資料庫請求數據時出現錯誤: %v", result.Error)
