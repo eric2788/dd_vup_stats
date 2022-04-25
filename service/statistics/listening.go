@@ -62,8 +62,7 @@ func removeUnusedVupListFromRedis() {
 	err = db.Database.
 		Model(&db.Vup{}).
 		Where("uid IN (?)", cache).
-		Select("uid").
-		Find(&vupList).
+		Pluck("uid", &vupList).
 		Error
 
 	if err != nil {
@@ -71,8 +70,8 @@ func removeUnusedVupListFromRedis() {
 		return
 	}
 
-	logger.Debugf("cache: %v", cache)
-	logger.Debugf("vupList: %v", vupList)
+	logger.Debugf("cache: %v", len(cache))
+	logger.Debugf("vupList: %v", len(vupList))
 
 	cacheSet, vupSet := set.FromArray(cache), set.FromArray(vupList)
 
@@ -127,7 +126,7 @@ func fetchVupListToRedis() {
 		if err != nil {
 			logger.Errorf("添加 vup %v 到 redis 緩存失敗: %v", vup, err)
 		} else {
-			logger.Debugf("成功添加 vup %v 到 redis 緩存。", vup)
+			logger.Debugf("成功從 fetchVupListToRedis 添加 vup %v 到 redis 緩存。", vup)
 		}
 	}
 
@@ -264,6 +263,8 @@ func fetchListeningInfo() {
 
 		if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", listenInfo.UID)); err != nil {
 			logger.Errorf("儲存緩存到 redis 時出現錯誤: %v", err)
+		} else {
+			logger.Debugf("從 fetchListeningInfo 新增了 %v 到 redis", listenInfo.UID)
 		}
 
 		toBeInsert[listenInfo.UID] = vup

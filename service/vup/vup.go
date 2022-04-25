@@ -31,8 +31,8 @@ func IsVup(uid int64) (bool, error) {
 
 	err := db.Database.
 		Model(&db.Vup{}).
-		Where("uid = ?", uid).
 		Select("count(*) > 0").
+		Where("uid = ?", uid).
 		Find(&exist).
 		Error
 
@@ -43,6 +43,8 @@ func IsVup(uid int64) (bool, error) {
 	if exist {
 		if err := db.SetAdd(db.VupListKey, fmt.Sprintf("%d", uid)); err != nil {
 			logger.Errorf("儲存用戶 %v 到 redis 時出現錯誤: %v", uid, err)
+		} else {
+			logger.Debugf("從 IsVup 新增了 %v 到 redis", uid)
 		}
 	}
 
