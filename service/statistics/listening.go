@@ -62,7 +62,8 @@ func removeUnusedVupListFromRedis() {
 	err = db.Database.
 		Model(&db.Vup{}).
 		Where("uid IN (?)", cache).
-		Pluck("uid", &vupList).
+		Select("uid").
+		Find(&vupList).
 		Error
 
 	if err != nil {
