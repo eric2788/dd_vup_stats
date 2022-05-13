@@ -23,6 +23,7 @@ func giftMsg(data *blive.LiveData) error {
 
 	// 对免费礼物进行筛选，如小心心等不应记录到数据库中
 	if filterGift(gift) {
+		logger.Debugf("%s 的禮物價值為 %d, 已略過。", gift.GiftName, gift.Price)
 		return nil
 	}
 
@@ -69,6 +70,7 @@ func giftMsg(data *blive.LiveData) error {
 		TargetUid: targetUid,
 		Command:   blive.SendGift,
 		Display:   display,
+		Price:     price,
 	}
 
 	result := db.Database.Create(behaviour)

@@ -60,6 +60,7 @@ func guardBuyMsg(data *blive.LiveData) error {
 		TargetUid: targetUid,
 		Command:   blive.GuardBuy,
 		Display:   display,
+		Price:     guardBuy.Price,
 	}
 
 	result := db.Database.Create(behaviour)
