@@ -21,6 +21,11 @@ func giftMsg(data *blive.LiveData) error {
 		return fmt.Errorf("解析 Gift 数据失败")
 	}
 
+	// 对礼物进行筛选，如小心心等不应记录到数据库中
+	if !filterGift(gift) {
+		return nil
+	}
+
 	// 送礼物的人
 	uid := gift.UID
 	// 收到礼物的人
@@ -51,9 +56,11 @@ func giftMsg(data *blive.LiveData) error {
 	}
 
 	giftName := gift.GiftName
+	number := gift.Num
 	price := gift.Price
 
-	display := fmt.Sprintf("在 %s 的直播间收到来自 %s 的 %s (%v元)", data.LiveInfo.Name, gift.Uname, giftName, price)
+	display := fmt.Sprintf("在 %s 的直播间收到来自 %s 的 %v 个 %s (%v元)", data.LiveInfo.Name, gift.Uname, number, giftName, price)
+	logger.Infof(display)
 
 	// 将送礼行为记录到数据库
 	behaviour := &db.Behaviour{
@@ -67,12 +74,31 @@ func giftMsg(data *blive.LiveData) error {
 	result := db.Database.Create(behaviour)
 
 	if result.Error != nil {
-		logger.Warnf("記錄醒目留言行為到資料庫失敗: %v", result.Error)
+		logger.Warnf("記錄送礼行為到資料庫失敗: %v", result.Error)
 	} else {
-		logger.Infof("記錄醒目留言行為到資料庫成功。(%v 筆資料)", result.RowsAffected)
+		logger.Infof("記錄送礼行为到資料庫成功。(%v 筆資料)", result.RowsAffected)
 	}
 
 	return nil
+}
+
+func filterGift(gift *blive.SendGiftData) bool {
+	giftName := gift.GiftName
+	filter_gift_list := []string{"小心心", "辣条", "小花花"}
+	if !in(giftName, filter_gift_list) {
+		return true
+	}
+	return false
+
+}
+
+func in(target string, str_array []string) bool {
+	for _, element := range str_array {
+		if target == element {
+			return true
+		}
+	}
+	return false
 }
 
 func init() {

@@ -65,9 +65,9 @@ func guardBuyMsg(data *blive.LiveData) error {
 	result := db.Database.Create(behaviour)
 
 	if result.Error != nil {
-		logger.Warnf("記錄醒目留言行為到資料庫失敗: %v", result.Error)
+		logger.Warnf("記錄上舰行為到資料庫失敗: %v", result.Error)
 	} else {
-		logger.Infof("記錄醒目留言行為到資料庫成功。(%v 筆資料)", result.RowsAffected)
+		logger.Infof("記錄上舰行為到資料庫成功。(%v 筆資料)", result.RowsAffected)
 	}
 
 	return nil
