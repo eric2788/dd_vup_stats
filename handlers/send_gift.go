@@ -21,8 +21,8 @@ func giftMsg(data *blive.LiveData) error {
 		return fmt.Errorf("解析 Gift 数据失败")
 	}
 
-	// 对礼物进行筛选，如小心心等不应记录到数据库中
-	if !filterGift(gift) {
+	// 对免费礼物进行筛选，如小心心等不应记录到数据库中
+	if filterGift(gift) {
 		return nil
 	}
 
@@ -82,23 +82,10 @@ func giftMsg(data *blive.LiveData) error {
 	return nil
 }
 
+// 筛选礼物，返回true表示需要筛选掉，返回false表示无需筛选
 func filterGift(gift *blive.SendGiftData) bool {
-	giftName := gift.GiftName
-	filter_gift_list := []string{"小心心", "辣条", "小花花"}
-	if !in(giftName, filter_gift_list) {
-		return true
-	}
-	return false
-
-}
-
-func in(target string, str_array []string) bool {
-	for _, element := range str_array {
-		if target == element {
-			return true
-		}
-	}
-	return false
+	giftPrice := gift.Price
+	return giftPrice == 0
 }
 
 func init() {
