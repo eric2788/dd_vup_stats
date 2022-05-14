@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"math"
+	"strconv"
 	"time"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
@@ -31,7 +31,7 @@ func giftMsg(data *blive.LiveData) error {
 	batteries := gift.TotalCoin / 100
 
 	// 10 電池 = 1 元
-	price := int(math.Ceil(float64(batteries) / float64(10)))
+	price, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(batteries)/10), 64)
 
 	// 送礼物的人
 	uid := gift.UID

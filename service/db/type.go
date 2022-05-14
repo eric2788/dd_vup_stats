@@ -27,7 +27,7 @@ type (
 		Command   string         `json:"command"`
 		Display   string         `json:"display"`
 		Image     sql.NullString `json:"image"`
-		Price     int            `json:"price" gorm:"default:0"`
+		Price     float64        `json:"price" gorm:"default:0"`
 	}
 
 	LastListen struct {
