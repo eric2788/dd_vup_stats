@@ -6,6 +6,7 @@ const (
 	DanmuMsg         = "DANMU_MSG"
 	SendGift         = "SEND_GIFT"
 	GuardBuy         = "GUARD_BUY"
+	GuardBuyToast    = "USER_TOAST_MSG"
 	SuperChatMessage = "SUPER_CHAT_MESSAGE"
 	Live             = "LIVE"
 	InteractWord     = "INTERACT_WORD"
@@ -144,15 +145,12 @@ type (
 	}
 
 	GuardBuyData struct {
-		GuardLevel int    `json:"guard_level"`
-		Price      int    `json:"price"`
-		UID        int64  `json:"uid"`
-		Num        int    `json:"num"`
-		GiftID     int64  `json:"gift_id"`
-		GiftName   string `json:"gift_name"`
-		StartTime  int64  `json:"start_time"`
-		EndTime    int64  `json:"end_time"`
-		Username   string `json:"username"`
+		Price     int    `json:"price"`
+		UID       int64  `json:"uid"`
+		Num       int    `json:"num"`
+		StartTime int64  `json:"start_time"`
+		RoleName  string `json:"role_name"`
+		Username  string `json:"username"`
 	}
 )
 

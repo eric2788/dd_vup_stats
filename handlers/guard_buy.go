@@ -50,7 +50,7 @@ func guardBuyMsg(data *blive.LiveData) error {
 		return nil
 	}
 
-	guardName := guardBuy.GiftName
+	guardName := guardBuy.RoleName
 
 	display := fmt.Sprintf("在 %s 的直播间收到来自 %s 的 %s", data.LiveInfo.Name, guardBuy.Username, guardName)
 
@@ -60,7 +60,7 @@ func guardBuyMsg(data *blive.LiveData) error {
 		TargetUid: targetUid,
 		Command:   blive.GuardBuy,
 		Display:   display,
-		Price:     float64(guardBuy.Price),
+		Price:     float64(guardBuy.Price / 1000),
 	}
 
 	result := db.Database.Create(behaviour)
@@ -75,5 +75,5 @@ func guardBuyMsg(data *blive.LiveData) error {
 }
 
 func init() {
-	blive.RegisterHandler(blive.GuardBuy, guardBuyMsg)
+	blive.RegisterHandler(blive.GuardBuyToast, guardBuyMsg)
 }
