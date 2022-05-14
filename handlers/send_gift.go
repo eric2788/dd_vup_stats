@@ -22,7 +22,7 @@ func giftMsg(data *blive.LiveData) error {
 	}
 
 	// 10 電池 = 1 元
-	price := gift.Price / 10
+	price := gift.TotalCoin / 10
 
 	// 对免费礼物进行筛选，如小心心等不应记录到数据库中
 	if gift.CoinType == "silver" {
