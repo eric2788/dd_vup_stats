@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"math"
 	"time"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
@@ -20,15 +21,17 @@ func giftMsg(data *blive.LiveData) error {
 	} else {
 		return fmt.Errorf("解析 Gift 数据失败")
 	}
-
-	// 10 電池 = 1 元
-	price := gift.TotalCoin / 10
-
 	// 对免费礼物进行筛选，如小心心等不应记录到数据库中
 	if gift.CoinType == "silver" {
 		logger.Debugf("%s 的禮物價值為銀瓜子類別, 已略過。", gift.GiftName)
 		return nil
 	}
+
+	// 1000 coins / 100 = 10 電池
+	batteries := gift.TotalCoin / 100
+
+	// 10 電池 = 1 元
+	price := int(math.Ceil(float64(batteries) / float64(10)))
 
 	// 送礼物的人
 	uid := gift.UID
