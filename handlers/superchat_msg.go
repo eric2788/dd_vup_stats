@@ -63,6 +63,7 @@ func superChatMsg(data *blive.LiveData) error {
 		TargetUid: targetUid,
 		Command:   blive.SuperChatMessage,
 		Display:   display,
+		Price:     price,
 	}
 
 	result := db.Database.Create(behaviour)

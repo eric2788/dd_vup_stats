@@ -21,9 +21,12 @@ func giftMsg(data *blive.LiveData) error {
 		return fmt.Errorf("解析 Gift 数据失败")
 	}
 
+	// 10 電池 = 1 元
+	price := gift.Price / 10
+
 	// 对免费礼物进行筛选，如小心心等不应记录到数据库中
-	if filterGift(gift) {
-		logger.Debugf("%s 的禮物價值為 %d, 已略過。", gift.GiftName, gift.Price)
+	if gift.CoinType == "silver" {
+		logger.Debugf("%s 的禮物價值為銀瓜子類別, 已略過。", gift.GiftName)
 		return nil
 	}
 
@@ -58,7 +61,6 @@ func giftMsg(data *blive.LiveData) error {
 
 	giftName := gift.GiftName
 	number := gift.Num
-	price := gift.Price
 
 	display := fmt.Sprintf("在 %s 的直播间收到来自 %s 的 %v 个 %s (%v元)", data.LiveInfo.Name, gift.Uname, number, giftName, price)
 	logger.Infof(display)
@@ -82,12 +84,6 @@ func giftMsg(data *blive.LiveData) error {
 	}
 
 	return nil
-}
-
-// 筛选礼物，返回true表示需要筛选掉，返回false表示无需筛选
-func filterGift(gift *blive.SendGiftData) bool {
-	giftPrice := gift.Price
-	return giftPrice == 0
 }
 
 func init() {
