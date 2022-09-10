@@ -48,7 +48,6 @@ func InitDB() {
 	log.Info("資料庫連接成功")
 
 	if err = db.
-		Set("gorm:table_options", "ENGINE=InnoDB").
 		AutoMigrate(&Vup{}, &Behaviour{}, &LastListen{}); err != nil {
 		log.Fatalf("Error while auto migrating tables: %v", err)
 	}
