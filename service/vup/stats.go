@@ -15,14 +15,14 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 		Model(&db.Behaviour{}).
 		Joins("left join vups on vups.uid = behaviours.target_uid").
 		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid", uid).
-		Select([]string{
+		Distinct([]string{
 			"vups.name",
 			"vups.uid",
 			"vups.room_id",
 			"vups.face",
 			"vups.sign",
-			"COUNT(*) as count",
 		}).
+		Select("COUNT(*) as count").
 		Group("behaviours.target_uid").
 		Order("count desc").
 		Limit(limit).
@@ -40,14 +40,14 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 		Model(&db.Behaviour{}).
 		Joins("left join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid", uid).
-		Select([]string{
+		Distinct([]string{
 			"vups.name",
 			"vups.uid",
 			"vups.room_id",
 			"vups.face",
 			"vups.sign",
-			"COUNT(*) as count",
 		}).
+		Select("COUNT(*) as count").
 		Group("behaviours.uid").
 		Limit(limit).
 		Order("count desc").

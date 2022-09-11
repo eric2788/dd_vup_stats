@@ -5,7 +5,7 @@ import (
 	"vup_dd_stats/service/blive"
 )
 
-func ATestGetVupStats(t *testing.T) {
+func aTestGetVupStats(t *testing.T) {
 	vup, err := GetStats(392505232, 5)
 	if err != nil {
 		t.Fatal(err)
