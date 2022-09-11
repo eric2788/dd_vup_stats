@@ -66,12 +66,12 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 		Model(&db.Vup{}).
 		Where("vups.uid = ?", uid).
 		Select([]string{
-			"vups.uid",
-			"vups.name",
-			"vups.face",
-			"vups.first_listen_at",
-			"vups.room_id",
-			"vups.sign",
+			"MAX(vups.uid) AS uid",
+			"MAX(vups.name) AS name",
+			"MAX(vups.face) AS face",
+			"MAX(vups.first_listen_at) AS first_listen_at",
+			"MAX(vups.room_id) AS room_id",
+			"MAX(vups.sign) AS sign",
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
 			"MAX(last_listens.last_listen_at) AS last_listened_at",
@@ -254,11 +254,11 @@ func GetMostDDVups(limit int) ([]AnalysisUserInfo, error) {
 	err := db.Database.
 		Model(&db.Behaviour{}).
 		Select([]string{
-			"vups.name",
-			"vups.uid",
-			"vups.room_id",
-			"vups.face",
-			"vups.sign",
+			"MAX(vups.name) as name",
+			"MAX(vups.uid) as uid",
+			"MAX(vups.room_id) as room_id",
+			"MAX(vups.face) as face",
+			"MAX(vups.sign) as sign",
 			"COUNT(DISTINCT behaviours.target_uid) as count",
 		}).
 		Joins("left join vups on vups.uid = behaviours.uid").
