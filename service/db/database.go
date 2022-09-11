@@ -9,24 +9,23 @@ import (
 )
 
 var (
-	log      = logrus.WithField("service", "db")
-	Database *gorm.DB
+	log          = logrus.WithField("service", "db")
+	Database     *gorm.DB
+	DatabaseType = strings.ToLower(os.Getenv("DB_TYPE"))
 )
 
 func InitDB() {
 
 	log.Info("正在連接資料庫...")
 
-	dbType := strings.ToLower(os.Getenv("DB_TYPE"))
-
-	if dbType == "" {
+	if DatabaseType == "" {
 		log.Fatal("未設定資料庫類型, 請在環境參數中設定 DB_TYPE")
 	}
 
-	getDataSource, exist := dialectMap[dbType]
+	getDataSource, exist := dialectMap[DatabaseType]
 
 	if !exist {
-		log.Fatalf("不支持的資料庫類型: %v", dbType)
+		log.Fatalf("不支持的資料庫類型: %v", DatabaseType)
 	}
 
 	var logLevel logger.LogLevel

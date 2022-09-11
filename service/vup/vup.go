@@ -74,7 +74,7 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 			"vups.sign",
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
-			"last_listens.last_listen_at AS last_listened_at",
+			"MAX(last_listens.last_listen_at) AS last_listened_at",
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
@@ -170,6 +170,17 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 		order = "asc"
 	}
 
+	// ==============
+	// postgres only
+
+	var nullsLast = ""
+
+	if db.DatabaseType == "postgres" {
+		nullsLast = " NULLS LAST"
+	}
+
+	// ==============
+
 	err := db.Database.
 		Model(&db.Vup{}).
 		Select([]string{
@@ -181,13 +192,13 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 			"vups.sign",
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
-			"last_listens.last_listen_at AS last_listened_at",
+			"MAX(last_listens.last_listen_at) AS last_listened_at",
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
 		Where("vups.name like ?", fmt.Sprintf("%%%s%%", name)).
 		Group("vups.uid").
-		Order(fmt.Sprintf("%s %s", orderBy, order)).
+		Order(fmt.Sprintf("%s %s%s", orderBy, order, nullsLast)).
 		Offset((page - 1) * pageSize).
 		Limit(pageSize).
 		Find(&vups).Error
