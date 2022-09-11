@@ -7,12 +7,12 @@ import (
 
 type (
 	Vup struct {
-		Uid              int64  `gorm:"primaryKey;autoIncrement:false"`
-		Name             string `gorm:"uniqueIndex"`
-		Face             string `gorm:"uniqueIndex"`
+		Uid              int64 `gorm:"primaryKey;autoIncrement:false"`
+		Name             string
+		Face             string
 		FirstListenAt    time.Time
-		RoomId           int64        `gorm:"uniqueIndex"`
-		Sign             string       `gorm:"uniqueIndex"`
+		RoomId           int64
+		Sign             string
 		Behaviours       []*Behaviour `gorm:"foreignKey:Uid;references:Uid;OnDelete:CASCADE"`
 		TargetBehaviours []*Behaviour `gorm:"foreignKey:TargetUid;references:Uid;OnDelete:CASCADE"`
 
