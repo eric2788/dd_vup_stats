@@ -29,7 +29,7 @@ func GetMostBehaviourVups(limit int) ([]AnalysisUserInfo, error) {
 		}).
 		Joins("left join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid != behaviours.uid").
-		Group("behaviours.uid").
+		Group("behaviours.uid, vups.uid").
 		Order("count desc").
 		Limit(limit).
 		Find(&mostDDBehaviourVups).
@@ -53,7 +53,7 @@ func GetMostBehaviourVupsByCommand(limit int, command string) []AnalysisUserInfo
 		}).
 		Joins("left join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid != behaviours.uid and behaviours.command = ?", command).
-		Group("behaviours.uid").
+		Group("behaviours.uid, vups.uid").
 		Order("count desc").
 		Limit(limit).
 		Find(&mostDDBehaviourVups).

@@ -16,14 +16,14 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 		Joins("left join vups on vups.uid = behaviours.target_uid").
 		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid", uid).
 		Select([]string{
-			"MAX(vups.name) as name",
-			"MAX(vups.uid) as uid",
-			"MAX(vups.room_id) as room_id",
-			"MAX(vups.face) as face",
-			"MAX(vups.sign) as sign",
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
 			"COUNT(*) as count",
 		}).
-		Group("behaviours.target_uid").
+		Group("behaviours.target_uid, vups.uid").
 		Order("count desc").
 		Limit(limit).
 		Find(&mostDDVups).
@@ -41,14 +41,14 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 		Joins("left join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid", uid).
 		Select([]string{
-			"MAX(vups.name) as name",
-			"MAX(vups.uid) as uid",
-			"MAX(vups.room_id) as room_id",
-			"MAX(vups.face) as face",
-			"MAX(vups.sign) as sign",
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
 			"COUNT(*) as count",
 		}).
-		Group("behaviours.uid").
+		Group("behaviours.uid, vups.uid").
 		Limit(limit).
 		Order("count desc").
 		Find(&mostGuestVups).
@@ -74,14 +74,14 @@ func GetStatsCommand(uid int64, limit int, command string) (*Analysis, error) {
 		Joins("left join vups on vups.uid = behaviours.target_uid").
 		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
 		Select([]string{
-			"MAX(vups.name) as name",
-			"MAX(vups.uid) as uid",
-			"MAX(vups.room_id) as room_id",
-			"MAX(vups.face) as face",
-			"MAX(vups.sign) as sign",
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
 			"COUNT(*) as count",
 		}).
-		Group("behaviours.target_uid").
+		Group("behaviours.target_uid, vups.uid").
 		Order("count desc").
 		Limit(limit).
 		Find(&mostDDVups).
@@ -99,14 +99,14 @@ func GetStatsCommand(uid int64, limit int, command string) (*Analysis, error) {
 		Joins("left join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
 		Select([]string{
-			"MAX(vups.name) as name",
-			"MAX(vups.uid) as uid",
-			"MAX(vups.room_id) as room_id",
-			"MAX(vups.face) as face",
-			"MAX(vups.sign) as sign",
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
 			"COUNT(*) as count",
 		}).
-		Group("behaviours.uid").
+		Group("behaviours.uid, vups.uid").
 		Limit(limit).
 		Order("count desc").
 		Find(&mostGuestVups).

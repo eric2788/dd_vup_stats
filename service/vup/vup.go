@@ -66,18 +66,19 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 		Model(&db.Vup{}).
 		Where("vups.uid = ?", uid).
 		Select([]string{
-			"MAX(vups.uid) AS uid",
-			"MAX(vups.name) AS name",
-			"MAX(vups.face) AS face",
-			"MAX(vups.first_listen_at) AS first_listen_at",
-			"MAX(vups.room_id) AS room_id",
-			"MAX(vups.sign) AS sign",
+			"vups.uid",
+			"vups.name",
+			"vups.face",
+			"vups.first_listen_at",
+			"vups.room_id",
+			"vups.sign",
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
 			"MAX(last_listens.last_listen_at) AS last_listened_at",
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
+		Group("behaviours.uid, vups.uid").
 		Take(&vup).
 		Error
 
@@ -197,7 +198,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
 		Where("vups.name like ?", fmt.Sprintf("%%%s%%", name)).
-		Group("vups.uid").
+		Group("behaviours.uid, vups.uid").
 		Order(fmt.Sprintf("%s %s%s", orderBy, order, nullsLast)).
 		Offset((page - 1) * pageSize).
 		Limit(pageSize).
@@ -254,16 +255,16 @@ func GetMostDDVups(limit int) ([]AnalysisUserInfo, error) {
 	err := db.Database.
 		Model(&db.Behaviour{}).
 		Select([]string{
-			"MAX(vups.name) as name",
-			"MAX(vups.uid) as uid",
-			"MAX(vups.room_id) as room_id",
-			"MAX(vups.face) as face",
-			"MAX(vups.sign) as sign",
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
 			"COUNT(DISTINCT behaviours.target_uid) as count",
 		}).
 		Joins("left join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid != behaviours.uid").
-		Group("behaviours.uid").
+		Group("behaviours.uid, vups.uid").
 		Order("count desc").
 		Limit(limit).
 		Find(&mostDDVups).
