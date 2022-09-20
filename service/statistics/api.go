@@ -3,7 +3,7 @@ package statistics
 import (
 	"encoding/json"
 	"fmt"
-	browser "github.com/EDDYCJY/fake-useragent"
+	"github.com/corpix/uarand"
 	"io"
 	"net/http"
 	"os"
@@ -76,7 +76,7 @@ func httpGet(url string, args ...any) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", browser.Random())
+	req.Header.Set("User-Agent", uarand.GetRandom())
 	logger.Debugf("Using User-Agent: %v\n", req.Header.Get("User-Agent"))
 	return http.DefaultClient.Do(req)
 }
