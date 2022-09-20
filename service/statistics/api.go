@@ -56,7 +56,7 @@ func GetVtbListVtbMoe() ([]VtbsMoeResp, error) {
 }
 
 func GetUserInfo(uid int64) (*UserResp, error) {
-	res, err := httpGet("https://api.bilibili.com/x/space/acc/info?mid=%v&jsonp=jsonp", uid)
+	res, err := httpGet(fmt.Sprintf("https://api.bilibili.com/x/space/acc/info?mid=%v&jsonp=jsonp", uid))
 	if err != nil {
 		return nil, err
 	}
@@ -67,12 +67,17 @@ func GetUserInfo(uid int64) (*UserResp, error) {
 	}
 	var resp UserResp
 	err = json.Unmarshal(b, &resp)
+	// change other agent
+	if resp.Code == -401 {
+		logger.Warnf("User-Agent is blocked, retrying with another one")
+		return GetUserInfo(uid)
+	}
 	return &resp, err
 }
 
 // httpGet with user-agent
-func httpGet(url string, args ...any) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(url, args...), nil)
+func httpGet(url string) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
