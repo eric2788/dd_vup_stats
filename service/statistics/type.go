@@ -12,8 +12,9 @@ type (
 	}
 
 	UserResp struct {
-		Code int `json:"code"`
-		Data struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Data    struct {
 			Mid      int64  `json:"mid"`
 			Name     string `json:"name"`
 			Official struct {

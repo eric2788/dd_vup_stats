@@ -3,6 +3,7 @@ package statistics
 import (
 	"encoding/json"
 	"fmt"
+	browser "github.com/EDDYCJY/fake-useragent"
 	"io"
 	"net/http"
 	"os"
@@ -40,7 +41,7 @@ func GetListeningInfo(roomId int64) (*blive.ListeningInfo, error) {
 }
 
 func GetVtbListVtbMoe() ([]VtbsMoeResp, error) {
-	res, err := http.Get("https://api.tokyo.vtbs.moe/v1/vtbs")
+	res, err := httpGet("https://api.tokyo.vtbs.moe/v1/vtbs")
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +56,7 @@ func GetVtbListVtbMoe() ([]VtbsMoeResp, error) {
 }
 
 func GetUserInfo(uid int64) (*UserResp, error) {
-	res, err := http.Get(fmt.Sprintf("https://api.bilibili.com/x/space/acc/info?mid=%v&jsonp=jsonp", uid))
+	res, err := httpGet("https://api.bilibili.com/x/space/acc/info?mid=%v&jsonp=jsonp", uid)
 	if err != nil {
 		return nil, err
 	}
@@ -67,4 +68,15 @@ func GetUserInfo(uid int64) (*UserResp, error) {
 	var resp UserResp
 	err = json.Unmarshal(b, &resp)
 	return &resp, err
+}
+
+// httpGet with user-agent
+func httpGet(url string, args ...any) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(url, args...), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", browser.Random())
+	logger.Debugf("Using User-Agent: %v\n", req.Header.Get("User-Agent"))
+	return http.DefaultClient.Do(req)
 }
