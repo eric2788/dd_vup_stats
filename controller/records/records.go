@@ -99,6 +99,8 @@ func GetRecordsByType(c *gin.Context) {
 	// 最高拿到100
 	if limit > 100 {
 		limit = 100
+	} else if limit <= 0 {
+		limit = 5
 	}
 
 	if getter, ok := recordTypeMap[getterType]; ok {
