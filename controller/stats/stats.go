@@ -137,8 +137,7 @@ func GetUserStats(c *gin.Context) {
 		limit = 1
 	}
 
-	orderPrice := c.DefaultQuery("price", "false") != "false"
-	resp, err := vup.GetStats(userId, limit, orderPrice)
+	resp, err := vup.GetStats(userId, limit)
 
 	if err != nil {
 		logger.Warn(err)

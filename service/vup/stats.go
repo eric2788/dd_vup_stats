@@ -7,15 +7,9 @@ import (
 	"vup_dd_stats/service/statistics"
 )
 
-func GetStats(uid int64, limit int, price bool) (*Analysis, error) {
+func GetStats(uid int64, limit int) (*Analysis, error) {
 
 	var mostDDVups []AnalysisUserInfo
-
-	orderBy := "count"
-
-	if price {
-		orderBy = "price"
-	}
 
 	// D 最多
 	err := db.Database.
@@ -32,7 +26,7 @@ func GetStats(uid int64, limit int, price bool) (*Analysis, error) {
 			"SUM(behaviours.price) as price",
 		}).
 		Group("behaviours.target_uid, vups.uid").
-		Order(fmt.Sprintf("%s desc", orderBy)).
+		Order("count desc").
 		Limit(limit).
 		Find(&mostDDVups).
 		Error
@@ -59,8 +53,33 @@ func GetStats(uid int64, limit int, price bool) (*Analysis, error) {
 		}).
 		Group("behaviours.uid, vups.uid").
 		Limit(limit).
-		Order(fmt.Sprintf("%s desc", orderBy)).
+		Order("count desc").
 		Find(&mostGuestVups).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	var mostSpentVups []PricedUserInfo
+
+	// 花費最多
+	err = db.Database.
+		Model(&db.Behaviour{}).
+		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid", uid).
+		Select([]string{
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
+			"SUM(behaviours.price) as spent",
+		}).
+		Group("behaviours.target_uid, vups.uid").
+		Order("price desc").
+		Limit(limit).
+		Find(&mostSpentVups).
 		Error
 
 	if err != nil {
@@ -70,6 +89,7 @@ func GetStats(uid int64, limit int, price bool) (*Analysis, error) {
 	return &Analysis{
 		TopDDVups:    mostDDVups,
 		TopGuestVups: mostGuestVups,
+		TopSpentVups: mostSpentVups,
 	}, nil
 }
 
