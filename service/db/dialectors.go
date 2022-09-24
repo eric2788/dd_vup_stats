@@ -38,13 +38,19 @@ func getPgSQLDataSource() gorm.Dialector {
 	pgHost := os.Getenv("PG_HOST")
 	pgPort := os.Getenv("PG_PORT")
 	pgDB := os.Getenv("PG_DB")
+	pgSSL := os.Getenv("PG_SSL")
+
+	if pgSSL == "" {
+		pgSSL = "disable"
+	}
 
 	return postgres.Open(fmt.Sprintf(
-		"host=%v port=%v user=%v dbname=%v password=%v sslmode=disable",
+		"host=%v port=%v user=%v dbname=%v password=%v sslmode=%v",
 		pgHost,
 		pgPort,
 		pgUser,
 		pgDB,
 		pgPass,
+		pgSSL,
 	))
 }
