@@ -2,7 +2,6 @@ package vup
 
 import (
 	"fmt"
-	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/statistics"
 )
@@ -198,21 +197,13 @@ func GetGlobalStats(top int) (*GlobalStatistics, error) {
 		return nil, err
 	}
 
-	// get all registered commands
-	registeredCommands := blive.GetRegisteredCommands()
-	mostDDBehaviourVupCommands := make(map[string][]AnalysisUserInfo, len(registeredCommands))
-	for _, command := range registeredCommands {
-		mostDDBehaviourVupCommands[command] = GetMostBehaviourVupsByCommand(top, command)
-	}
-
 	return &GlobalStatistics{
-		TotalVupRecorded:           recordCount,
-		CurrentListeningCount:      listeningCount,
-		MostDDBehaviourVupCommands: mostDDBehaviourVupCommands,
-		MostDDBehaviourVups:        mostDDBehaviourVups,
-		MostDDVups:                 mostDDVups,
-		MostSpentVups:              mostSpentVups,
-		TotalDDBehaviours:          behaviourCount,
+		TotalVupRecorded:      recordCount,
+		CurrentListeningCount: listeningCount,
+		MostDDBehaviourVups:   mostDDBehaviourVups,
+		MostDDVups:            mostDDVups,
+		MostSpentVups:         mostSpentVups,
+		TotalDDBehaviours:     behaviourCount,
 	}, nil
 }
 

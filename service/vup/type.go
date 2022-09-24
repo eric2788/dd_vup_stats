@@ -69,12 +69,11 @@ type (
 	}
 
 	GlobalStatistics struct {
-		TotalVupRecorded           int64                         `json:"total_vup_recorded"`
-		CurrentListeningCount      int64                         `json:"current_listening_count"`
-		MostDDBehaviourVupCommands map[string][]AnalysisUserInfo `json:"most_dd_behaviour_vup_commands"`
-		MostDDBehaviourVups        []AnalysisUserInfo            `json:"most_dd_behaviour_vups"`
-		MostDDVups                 []AnalysisUserInfo            `json:"most_dd_vups"` // D 最多直播間的人
-		MostSpentVups              []PricedUserInfo              `json:"most_spent_vups"`
-		TotalDDBehaviours          int64                         `json:"total_dd_behaviours"`
+		TotalVupRecorded      int64              `json:"total_vup_recorded"`
+		CurrentListeningCount int64              `json:"current_listening_count"`
+		MostDDBehaviourVups   []AnalysisUserInfo `json:"most_dd_behaviour_vups"`
+		MostDDVups            []AnalysisUserInfo `json:"most_dd_vups"` // D 最多直播間的人
+		MostSpentVups         []PricedUserInfo   `json:"most_spent_vups"`
+		TotalDDBehaviours     int64              `json:"total_dd_behaviours"`
 	}
 )

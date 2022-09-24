@@ -1,6 +1,9 @@
 package vup
 
-import "vup_dd_stats/service/db"
+import (
+	"fmt"
+	"vup_dd_stats/service/db"
+)
 
 func GetTotalBehaviourCount() (int64, error) {
 
@@ -63,8 +66,13 @@ func GetMostSpentPricedVups(limit int) ([]PricedUserInfo, error) {
 	return mostSpentPricedVups, err
 }
 
-func GetMostBehaviourVupsByCommand(limit int, command string) []AnalysisUserInfo {
+func GetMostBehaviourVupsByCommand(limit int, command string, price bool) ([]AnalysisUserInfo, error) {
 	var mostDDBehaviourVups []AnalysisUserInfo
+
+	orderBy := "count"
+	if price {
+		orderBy = "price"
+	}
 
 	err := db.Database.
 		Model(&db.Behaviour{}).
@@ -80,15 +88,10 @@ func GetMostBehaviourVupsByCommand(limit int, command string) []AnalysisUserInfo
 		Joins("left join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid != behaviours.uid and behaviours.command = ?", command).
 		Group("behaviours.uid, vups.uid").
-		Order("count desc").
+		Order(fmt.Sprintf("%s desc", orderBy)).
 		Limit(limit).
 		Find(&mostDDBehaviourVups).
 		Error
 
-	if err != nil {
-		logger.Errorf("獲取在 %v 的DD行為數量最多的vup時出現錯誤: %v", command, err)
-		mostDDBehaviourVups = make([]AnalysisUserInfo, 0)
-	}
-
-	return mostDDBehaviourVups
+	return mostDDBehaviourVups, err
 }
