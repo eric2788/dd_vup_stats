@@ -39,7 +39,7 @@ func aTestGetTopGuestRecordsNF(t *testing.T) {
 }
 
 func aTestGetGlobalRecords(t *testing.T) {
-	be, err := GetGlobalRecords("", 1, 5, false)
+	be, err := GetGlobalRecords("", "", 1, 5, false)
 	if err != nil {
 		t.Fatal(err)
 	}

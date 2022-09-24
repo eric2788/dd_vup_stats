@@ -6,7 +6,7 @@ import (
 )
 
 func aTestGetVupStats(t *testing.T) {
-	vup, err := GetStats(392505232, 5)
+	vup, err := GetStats(392505232, 5, false)
 	if err != nil {
 		t.Fatal(err)
 	}
