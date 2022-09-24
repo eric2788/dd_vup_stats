@@ -30,6 +30,7 @@ ENV PG_PORT=5432
 ENV PG_USER=postgres
 ENV PG_PASS=changeme
 ENV PG_DB=ddstats
+ENV PG_SSL=disable
 
 ENV WEBSOCKET_URL=ws://192.168.0.127:8888/ws/global
 ENV BILIGO_HOST=http://192.168.0.127:8888

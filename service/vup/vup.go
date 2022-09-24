@@ -75,6 +75,7 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
 			"MAX(last_listens.last_listen_at) AS last_listened_at",
+			"SUM(behaviours.price) AS total_spent",
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
@@ -95,16 +96,18 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 		vup.LastListenedAt = lastListenAt
 	}
 
+	registeredCommands := blive.GetRegisteredCommands()
+	behaviourCounts := make(map[string]TotalStats, len(registeredCommands))
+	for _, command := range registeredCommands {
+		behaviourCounts[command] = GetTotalStatusByCommand(uid, command)
+	}
+
 	return &UserDetailResp{
 		UserResp: UserResp{
 			UserInfo:  vup,
 			Listening: listening,
 		},
-		BehavioursCount: map[string]int64{
-			blive.DanmuMsg:         GetTotalCountByCommand(uid, blive.DanmuMsg),
-			blive.InteractWord:     GetTotalCountByCommand(uid, blive.InteractWord),
-			blive.SuperChatMessage: GetTotalCountByCommand(uid, blive.SuperChatMessage),
-		},
+		BehavioursCount: behaviourCounts,
 	}, nil
 
 }
@@ -194,6 +197,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 			"COUNT(behaviours.uid) AS dd_count",
 			"MAX(behaviours.created_at) AS last_behaviour_at",
 			"MAX(last_listens.last_listen_at) AS last_listened_at",
+			"SUM(behaviours.price) AS total_spent",
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
@@ -248,6 +252,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 	}, nil
 }
 
+// GetMostDDVups 獲取進入最多不同直播間的 vups
 func GetMostDDVups(limit int) ([]AnalysisUserInfo, error) {
 
 	var mostDDVups []AnalysisUserInfo

@@ -26,7 +26,7 @@ type (
 
 	UserDetailResp struct {
 		UserResp
-		BehavioursCount map[string]int64 `json:"behaviours_count"`
+		BehavioursCount map[string]TotalStats `json:"behaviours_count"`
 	}
 
 	UserInfo struct {
@@ -34,6 +34,7 @@ type (
 		FirstListenAt   time.Time  `json:"first_listen_at"`
 		LastBehaviourAt *time.Time `json:"last_behaviour_at"`
 		DDCount         int64      `json:"dd_count"`
+		TotalSpent      float64    `json:"total_spent"`
 		LastListenedAt  time.Time  `json:"last_listened_at"`
 	}
 
@@ -47,7 +48,18 @@ type (
 
 	AnalysisUserInfo struct {
 		SimpleUserInfo
-		Count int64 `json:"count"`
+		Count int64   `json:"count"`
+		Price float64 `json:"price"`
+	}
+
+	TotalStats struct {
+		Count int64   `json:"count"`
+		Price float64 `json:"price"`
+	}
+
+	PricedUserInfo struct {
+		SimpleUserInfo
+		Spent float64 `json:"spent"`
 	}
 
 	Analysis struct {
@@ -61,6 +73,7 @@ type (
 		MostDDBehaviourVupCommands map[string][]AnalysisUserInfo `json:"most_dd_behaviour_vup_commands"`
 		MostDDBehaviourVups        []AnalysisUserInfo            `json:"most_dd_behaviour_vups"`
 		MostDDVups                 []AnalysisUserInfo            `json:"most_dd_vups"` // D 最多直播間的人
+		MostSpentVups              []PricedUserInfo              `json:"most_spent_vups"`
 		TotalDDBehaviours          int64                         `json:"total_dd_behaviours"`
 	}
 )

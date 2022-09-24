@@ -19,16 +19,20 @@ import (
 )
 
 func init() {
+
+	if _, err := os.Open(".env"); err == nil {
+		if err := godotenv.Load(); err != nil {
+			logrus.Errorf("Error while loading environment file: %v", err)
+		} else {
+			logrus.Infof("Environment File (.env) loaded.")
+		}
+	}
+
 	if os.Getenv("GIN_MODE") != "release" {
 		// debug mode
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
-	if _, err := os.Open(".env"); err == nil {
-		if err := godotenv.Load(); err != nil {
-			logrus.Errorf("Error while loading environment file: %v", err)
-		}
-	}
 }
 
 func main() {

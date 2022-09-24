@@ -26,6 +26,7 @@ func GetMostBehaviourVups(limit int) ([]AnalysisUserInfo, error) {
 			"vups.face",
 			"vups.sign",
 			"COUNT(*) as count",
+			"SUM(behaviours.price) as price",
 		}).
 		Joins("left join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid != behaviours.uid").
@@ -36,6 +37,30 @@ func GetMostBehaviourVups(limit int) ([]AnalysisUserInfo, error) {
 		Error
 
 	return mostDDBehaviourVups, err
+}
+
+func GetMostSpentPricedVups(limit int) ([]PricedUserInfo, error) {
+	var mostSpentPricedVups []PricedUserInfo
+
+	err := db.Database.
+		Model(&db.Behaviour{}).
+		Select([]string{
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
+			"SUM(behaviours.price) as spent",
+		}).
+		Joins("left join vups on vups.uid = behaviours.uid").
+		Where("behaviours.target_uid != behaviours.uid").
+		Group("behaviours.uid, vups.uid").
+		Order("spent desc").
+		Limit(limit).
+		Find(&mostSpentPricedVups).
+		Error
+
+	return mostSpentPricedVups, err
 }
 
 func GetMostBehaviourVupsByCommand(limit int, command string) []AnalysisUserInfo {
@@ -50,6 +75,7 @@ func GetMostBehaviourVupsByCommand(limit int, command string) []AnalysisUserInfo
 			"vups.face",
 			"vups.sign",
 			"COUNT(*) as count",
+			"SUM(behaviours.price) as price",
 		}).
 		Joins("left join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid != behaviours.uid and behaviours.command = ?", command).

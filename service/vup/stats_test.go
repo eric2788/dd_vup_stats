@@ -14,7 +14,7 @@ func aTestGetVupStats(t *testing.T) {
 }
 
 func ATestGetVupStatsCommand(t *testing.T) {
-	vup, err := GetStatsCommand(690608693, 5, blive.InteractWord)
+	vup, err := GetStatsCommand(690608693, 5, blive.InteractWord, false)
 	if err != nil {
 		t.Fatal(err)
 	}

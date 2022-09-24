@@ -2,6 +2,7 @@ package statistics
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/corpix/uarand"
 	"io"
@@ -56,6 +57,10 @@ func GetVtbListVtbMoe() ([]VtbsMoeResp, error) {
 }
 
 func GetUserInfo(uid int64) (*UserResp, error) {
+	return GetUserInfoRetry(uid, 0, 5)
+}
+
+func GetUserInfoRetry(uid int64, times, max int) (*UserResp, error) {
 	res, err := httpGet(fmt.Sprintf("https://api.bilibili.com/x/space/acc/info?mid=%v&jsonp=jsonp", uid))
 	if err != nil {
 		return nil, err
@@ -69,8 +74,14 @@ func GetUserInfo(uid int64) (*UserResp, error) {
 	err = json.Unmarshal(b, &resp)
 	// change other agent
 	if resp.Code == -401 {
-		logger.Warnf("User-Agent is blocked, retrying with another one")
-		return GetUserInfo(uid)
+		if times > max {
+			logger.Warnf("Retried %v times, returning error", max)
+			return nil, errors.New(resp.Message)
+		} else {
+			logger.Warnf("User-Agent is blocked, retrying with another one")
+		}
+		times += 1
+		return GetUserInfoRetry(uid, times, max)
 	}
 	return &resp, err
 }

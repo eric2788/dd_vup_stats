@@ -1,14 +1,21 @@
 package vup
 
 import (
+	"fmt"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/statistics"
 )
 
-func GetStats(uid int64, limit int) (*Analysis, error) {
+func GetStats(uid int64, limit int, price bool) (*Analysis, error) {
 
 	var mostDDVups []AnalysisUserInfo
+
+	orderBy := "count"
+
+	if price {
+		orderBy = "price"
+	}
 
 	// D 最多
 	err := db.Database.
@@ -22,9 +29,10 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 			"vups.face",
 			"vups.sign",
 			"COUNT(*) as count",
+			"SUM(behaviours.price) as price",
 		}).
 		Group("behaviours.target_uid, vups.uid").
-		Order("count desc").
+		Order(fmt.Sprintf("%s desc", orderBy)).
 		Limit(limit).
 		Find(&mostDDVups).
 		Error
@@ -47,10 +55,11 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 			"vups.face",
 			"vups.sign",
 			"COUNT(*) as count",
+			"SUM(behaviours.price) as price",
 		}).
 		Group("behaviours.uid, vups.uid").
 		Limit(limit).
-		Order("count desc").
+		Order(fmt.Sprintf("%s desc", orderBy)).
 		Find(&mostGuestVups).
 		Error
 
@@ -64,9 +73,15 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 	}, nil
 }
 
-func GetStatsCommand(uid int64, limit int, command string) (*Analysis, error) {
+func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysis, error) {
 
 	var mostDDVups []AnalysisUserInfo
+
+	orderBy := "count"
+
+	if price {
+		orderBy = "price"
+	}
 
 	// D 最多
 	err := db.Database.
@@ -80,9 +95,10 @@ func GetStatsCommand(uid int64, limit int, command string) (*Analysis, error) {
 			"vups.face",
 			"vups.sign",
 			"COUNT(*) as count",
+			"SUM(behaviours.price) as price",
 		}).
 		Group("behaviours.target_uid, vups.uid").
-		Order("count desc").
+		Order(fmt.Sprintf("%s desc", orderBy)).
 		Limit(limit).
 		Find(&mostDDVups).
 		Error
@@ -105,10 +121,11 @@ func GetStatsCommand(uid int64, limit int, command string) (*Analysis, error) {
 			"vups.face",
 			"vups.sign",
 			"COUNT(*) as count",
+			"SUM(behaviours.price) as price",
 		}).
 		Group("behaviours.uid, vups.uid").
 		Limit(limit).
-		Order("count desc").
+		Order(fmt.Sprintf("%s desc", orderBy)).
 		Find(&mostGuestVups).
 		Error
 
@@ -155,34 +172,49 @@ func GetGlobalStats(top int) (*GlobalStatistics, error) {
 		return nil, err
 	}
 
+	mostSpentVups, err := GetMostSpentPricedVups(top)
+	if err != nil {
+		logger.Errorf("獲取花費最多的vup時出現錯誤: %v", err)
+		return nil, err
+	}
+
+	// get all registered commands
+	registeredCommands := blive.GetRegisteredCommands()
+	mostDDBehaviourVupCommands := make(map[string][]AnalysisUserInfo, len(registeredCommands))
+	for _, command := range registeredCommands {
+		mostDDBehaviourVupCommands[command] = GetMostBehaviourVupsByCommand(top, command)
+	}
+
 	return &GlobalStatistics{
-		TotalVupRecorded:      recordCount,
-		CurrentListeningCount: listeningCount,
-		MostDDBehaviourVupCommands: map[string][]AnalysisUserInfo{
-			blive.DanmuMsg:         GetMostBehaviourVupsByCommand(top, blive.DanmuMsg),
-			blive.InteractWord:     GetMostBehaviourVupsByCommand(top, blive.InteractWord),
-			blive.SuperChatMessage: GetMostBehaviourVupsByCommand(top, blive.SuperChatMessage),
-		},
-		MostDDBehaviourVups: mostDDBehaviourVups,
-		MostDDVups:          mostDDVups,
-		TotalDDBehaviours:   behaviourCount,
+		TotalVupRecorded:           recordCount,
+		CurrentListeningCount:      listeningCount,
+		MostDDBehaviourVupCommands: mostDDBehaviourVupCommands,
+		MostDDBehaviourVups:        mostDDBehaviourVups,
+		MostDDVups:                 mostDDVups,
+		MostSpentVups:              mostSpentVups,
+		TotalDDBehaviours:          behaviourCount,
 	}, nil
 }
 
-func GetTotalCountByCommand(uid int64, command string) int64 {
+func GetTotalStatusByCommand(uid int64, command string) TotalStats {
 
-	var totalCount int64
+	var totalStatus TotalStats
+
 	err := db.Database.
 		Model(&db.Behaviour{}).
+		Select([]string{
+			"COUNT(*) as count",
+			"SUM(price) as price",
+		}).
 		Where("uid = ? and command = ? and uid != target_uid", uid, command).
-		Count(&totalCount).
+		Find(&totalStatus).
 		Error
 
 	if err != nil {
 		logger.Errorf("獲取 %v 的 %v 行為時出現錯誤: %v", uid, command, err)
-		totalCount = -1
+		return TotalStats{-1, -1}
 	}
 
-	return totalCount
+	return totalStatus
 
 }

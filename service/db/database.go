@@ -11,12 +11,14 @@ import (
 var (
 	log          = logrus.WithField("service", "db")
 	Database     *gorm.DB
-	DatabaseType = strings.ToLower(os.Getenv("DB_TYPE"))
+	DatabaseType = ""
 )
 
 func InitDB() {
 
 	log.Info("正在連接資料庫...")
+
+	DatabaseType = strings.ToLower(os.Getenv("DB_TYPE"))
 
 	if DatabaseType == "" {
 		log.Fatal("未設定資料庫類型, 請在環境參數中設定 DB_TYPE")

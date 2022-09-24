@@ -68,7 +68,7 @@ func GetTopSelfRecords(uid int64, limit int) ([]db.Behaviour, error) {
 	return behaviours, nil
 }
 
-func GetGlobalRecords(search string, page, pageSize int, showSelf bool) (*ListResp[RecordResp], error) {
+func GetGlobalRecords(search, cmd string, page, pageSize int, showSelf bool) (*ListResp[RecordResp], error) {
 
 	// ensure page is valid
 	page = int(math.Max(1, float64(page)))
@@ -80,11 +80,7 @@ func GetGlobalRecords(search string, page, pageSize int, showSelf bool) (*ListRe
 
 	r := db.Database.Model(&db.Behaviour{})
 
-	if showSelf {
-		r = r.Where("behaviours.display like ?", fmt.Sprintf("%%%s%%", search))
-	} else {
-		r = r.Where("behaviours.display like ? and behaviours.uid != behaviours.target_uid", fmt.Sprintf("%%%s%%", search))
-	}
+	r = buildWhereStatement(r, search, cmd, showSelf)
 
 	err := r.
 		Select("behaviours.*, vups.face as vup_face").
@@ -103,13 +99,7 @@ func GetGlobalRecords(search string, page, pageSize int, showSelf bool) (*ListRe
 
 	r = db.Database.Model(&db.Behaviour{})
 
-	if showSelf {
-		r = r.Where("behaviours.display like ?", fmt.Sprintf("%%%s%%", search))
-	} else {
-		r = r.Where("behaviours.display like ? and behaviours.uid != behaviours.target_uid", fmt.Sprintf("%%%s%%", search))
-	}
-
-	err = r.Count(&totalSearchCount).Error
+	err = buildWhereStatement(r, search, cmd, showSelf).Count(&totalSearchCount).Error
 
 	if err != nil {
 		return nil, err
@@ -122,4 +112,19 @@ func GetGlobalRecords(search string, page, pageSize int, showSelf bool) (*ListRe
 		Size:    pageSize,
 		MaxPage: int64(math.Ceil(float64(totalSearchCount) / float64(pageSize))),
 	}, nil
+}
+
+func buildWhereStatement(r *gorm.DB, search, cmd string, showSelf bool) *gorm.DB {
+
+	r = r.Where("behaviours.display like ?", fmt.Sprintf("%%%s%%", search))
+
+	if !showSelf {
+		r = r.Where("behaviours.uid != behaviours.target_uid")
+	}
+
+	if cmd != "" {
+		r = r.Where("behaviours.command = ?", cmd)
+	}
+
+	return r
 }

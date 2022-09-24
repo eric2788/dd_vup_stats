@@ -12,6 +12,19 @@ var (
 	exceptions = set.New[string]()
 )
 
+var nonStatsCommands = set.FromArray([]string{Live, Preparing})
+
+func GetRegisteredCommands() []string {
+	commands := make([]string, 0, len(handlerMap))
+	for command := range handlerMap {
+		if nonStatsCommands.Has(command) {
+			continue
+		}
+		commands = append(commands, command)
+	}
+	return commands
+}
+
 func handleMessage(b []byte) {
 
 	liveData := &LiveData{}
