@@ -76,7 +76,7 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 			"SUM(behaviours.price) as spent",
 		}).
 		Group("behaviours.target_uid, vups.uid").
-		Order("price desc").
+		Order("spent desc").
 		Limit(limit).
 		Find(&mostSpentVups).
 		Error
