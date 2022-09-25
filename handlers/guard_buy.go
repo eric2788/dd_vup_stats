@@ -58,7 +58,7 @@ func guardBuyMsg(data *blive.LiveData) error {
 		Uid:       uid,
 		CreatedAt: time.Now(),
 		TargetUid: targetUid,
-		Command:   blive.GuardBuy,
+		Command:   blive.GuardBuyToast,
 		Display:   display,
 		Price:     float64(guardBuy.Price / 1000),
 	}
