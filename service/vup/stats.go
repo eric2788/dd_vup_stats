@@ -99,7 +99,7 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 	orderBy := "count"
 
 	if price {
-		orderBy = "price"
+		orderBy = "SUM(price)"
 	}
 
 	// D 最多
@@ -152,9 +152,34 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 		return nil, err
 	}
 
+	// 花費最多
+	var mostSpentVups []PricedUserInfo
+	err = db.Database.
+		Model(&db.Behaviour{}).
+		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
+		Select([]string{
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
+			"SUM(behaviours.price) as spent",
+		}).
+		Group("behaviours.target_uid, vups.uid").
+		Order("spent desc").
+		Limit(limit).
+		Find(&mostSpentVups).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &Analysis{
 		TopDDVups:    mostDDVups,
 		TopGuestVups: mostGuestVups,
+		TopSpentVups: mostSpentVups,
 	}, nil
 }
 
