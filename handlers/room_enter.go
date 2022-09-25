@@ -50,7 +50,7 @@ func roomEnter(data *blive.LiveData) error {
 		Uid:       uid,
 		CreatedAt: time.Now(),
 		TargetUid: targetUid,
-		Command:   blive.InteractWord,
+		Command:   data.Command,
 		Display:   display,
 	}
 

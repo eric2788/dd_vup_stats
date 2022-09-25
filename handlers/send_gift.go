@@ -73,7 +73,7 @@ func giftMsg(data *blive.LiveData) error {
 		Uid:       uid,
 		CreatedAt: time.Now(),
 		TargetUid: targetUid,
-		Command:   blive.SendGift,
+		Command:   data.Command,
 		Display:   display,
 		Price:     price,
 	}

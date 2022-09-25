@@ -61,7 +61,7 @@ func superChatMsg(data *blive.LiveData) error {
 		Uid:       uid,
 		CreatedAt: time.Now(),
 		TargetUid: targetUid,
-		Command:   blive.SuperChatMessage,
+		Command:   data.Command,
 		Display:   display,
 		Price:     float64(price),
 	}

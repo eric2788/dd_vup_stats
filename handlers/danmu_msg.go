@@ -71,7 +71,7 @@ func danmuMsg(data *blive.LiveData) error {
 		Uid:       uid,
 		CreatedAt: time.Now(),
 		TargetUid: targetUid,
-		Command:   blive.DanmuMsg,
+		Command:   data.Command,
 		Display:   display,
 		Image: sql.NullString{
 			String: strings.Replace(imageUrl, "http://", "https://", -1),
