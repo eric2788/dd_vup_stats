@@ -3,16 +3,18 @@ package vup
 import (
 	"errors"
 	"fmt"
+	"math"
+	"time"
+	"vup_dd_stats/service/analysis"
+	"vup_dd_stats/service/blive"
+	"vup_dd_stats/service/db"
+	"vup_dd_stats/service/statistics"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"math"
-	"time"
-	"vup_dd_stats/service/blive"
-	"vup_dd_stats/service/db"
-	"vup_dd_stats/service/statistics"
 )
 
 var (
@@ -101,6 +103,9 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 	for _, command := range registeredCommands {
 		behaviourCounts[command] = GetTotalStatusByCommand(uid, command)
 	}
+
+	// annoymous record
+	go analysis.RecordSearchUser(uid)
 
 	return &UserDetailResp{
 		UserResp: UserResp{
@@ -242,6 +247,9 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 
 		userResps = append(userResps, userResp)
 	}
+
+	// annoymous record
+	go analysis.RecordSearchText(name)
 
 	return &ListResp[UserResp]{
 		Page:    page,

@@ -15,7 +15,7 @@ var (
 	logger                = logrus.WithField("service", "statistics")
 	Listening    *[]int64 = &[]int64{}
 	cooldownList          = set.New[int64]()
-	allowRoles            = set.FromArray[int]([]int{1, 2, 3})
+	allowRoles            = set.FromArray([]int{1, 2, 3})
 )
 
 func StartListenStats(ctx context.Context) {

@@ -2,11 +2,8 @@ package main
 
 import (
 	"context"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 	"os"
+	"strings"
 	"sync"
 	"vup_dd_stats/controller/records"
 	"vup_dd_stats/controller/stats"
@@ -14,6 +11,11 @@ import (
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/statistics"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 
 	_ "vup_dd_stats/handlers"
 )
@@ -55,6 +57,17 @@ func main() {
 	user.Register(router.Group("/user"))
 	stats.Register(router.Group("/stats"))
 	records.Register(router.Group("/records"))
+
+	if os.Getenv("SKIP_RECORDS_LOG") == "true" {
+		router.Use(func(c *gin.Context) {
+			// for /records/:uid only
+			if strings.HasPrefix(c.Request.URL.Path, "/records/") {
+				c.Next()
+				return
+			}
+			gin.Logger()(c)
+		})
+	}
 
 	if err := router.Run(":8086"); err != nil {
 		logrus.Errorf("Error while starting server: %v", err)

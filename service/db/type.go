@@ -34,4 +34,19 @@ type (
 		Uid          int64 `gorm:"primaryKey;autoIncrement:false"`
 		LastListenAt time.Time
 	}
+
+	Analysis struct {
+		AccessCount int64 `gorm:"default:0"`
+	}
+
+	UserAnalysis struct {
+		Analysis
+		Uid int64 `gorm:"primaryKey;autoIncrement:false"`
+	}
+
+	SearchAnalysis struct {
+		Analysis
+		SearchHash string `gorm:"primaryKey"`
+		SearchText string
+	}
 )
