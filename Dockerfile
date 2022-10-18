@@ -38,6 +38,8 @@ ENV DEV_HOST=http://dev.example.com
 ENV REDIS_ADDR=192.168.0.127:6379
 ENV REDIS_DB=0
 
+ENV TZ=Asia/Hong_Kong
+
 EXPOSE 8086
 
 ENTRYPOINT [ "/dd_vup_stats" ]
