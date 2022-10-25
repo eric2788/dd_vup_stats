@@ -19,7 +19,7 @@ const (
 var logger = logrus.WithField("service", "analysis")
 
 // RecordSearchText with annoymous
-func RecordSearchText(txt string, result int) {
+func RecordSearchText(txt string, result int64) {
 
 	if strings.TrimSpace(txt) == "" {
 		return

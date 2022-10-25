@@ -249,7 +249,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 	}
 
 	// annoymous record
-	go analysis.RecordSearchText(name, len(vups))
+	go analysis.RecordSearchText(name, totalSearchCount)
 
 	return &ListResp[UserResp]{
 		Page:    page,
