@@ -3,6 +3,7 @@ package analysis
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"strings"
 	"time"
 	"vup_dd_stats/service/db"
 
@@ -18,7 +19,11 @@ const (
 var logger = logrus.WithField("service", "analysis")
 
 // RecordSearchText with annoymous
-func RecordSearchText(txt string) {
+func RecordSearchText(txt string, result int) {
+
+	if strings.TrimSpace(txt) == "" {
+		return
+	}
 
 	ana := &db.SearchAnalysis{}
 
@@ -37,6 +42,7 @@ func RecordSearchText(txt string) {
 
 	ana.AccessCount += 1
 	ana.LastAccessDate = time.Now().Format(TimeFormat)
+	ana.ResultCount = result
 
 	err = db.Database.Save(ana).Error
 
