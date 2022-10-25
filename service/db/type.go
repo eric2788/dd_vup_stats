@@ -37,6 +37,7 @@ type (
 
 	Analysis struct {
 		AccessCount int64 `gorm:"default:0"`
+		LastAccessDate string
 	}
 
 	UserAnalysis struct {
