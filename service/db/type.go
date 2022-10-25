@@ -43,6 +43,7 @@ type (
 	UserAnalysis struct {
 		Analysis
 		Uid int64 `gorm:"primaryKey;autoIncrement:false"`
+		UserName string
 	}
 
 	SearchAnalysis struct {

@@ -105,7 +105,7 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 	}
 
 	// annoymous record
-	go analysis.RecordSearchUser(uid)
+	go analysis.RecordSearchUser(uid, vup.Name)
 
 	return &UserDetailResp{
 		UserResp: UserResp{
