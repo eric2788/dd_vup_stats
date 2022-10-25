@@ -51,7 +51,7 @@ func RecordSearchText(txt string) {
 func RecordSearchUser(uid int64) {
 	ana := &db.UserAnalysis{}
 
-	err := db.Database.FirstOrCreate(ana, db.UserAnalysis{Uid: uid})
+	err := db.Database.FirstOrCreate(ana, db.UserAnalysis{Uid: uid}).Error
 
 	if err != nil {
 		logger.Errorf("尋找或創建匿名vup訪問數據時出現錯誤: %v", err)
@@ -61,7 +61,7 @@ func RecordSearchUser(uid int64) {
 	ana.AccessCount += 1
 	ana.LastAccessDate = time.Now().Format(TimeFormat)
 
-	err = db.Database.Save(ana)
+	err = db.Database.Save(ana).Error
 
 	if err != nil {
 		logger.Errorf("儲存vup訪問數據時出現錯誤: %v", err)
