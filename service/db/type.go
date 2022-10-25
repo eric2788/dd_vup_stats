@@ -50,6 +50,6 @@ type (
 		Analysis
 		SearchHash  string `gorm:"primaryKey"`
 		SearchText  string
-		ResultCount int
+		ResultCount int64
 	}
 )
