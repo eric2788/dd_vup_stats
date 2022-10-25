@@ -19,7 +19,7 @@ const (
 var logger = logrus.WithField("service", "analysis")
 
 // RecordSearchText with annoymous
-func RecordSearchText(txt string) {
+func RecordSearchText(txt string, result int) {
 
 	if strings.TrimSpace(txt) == "" {
 		return
@@ -42,6 +42,7 @@ func RecordSearchText(txt string) {
 
 	ana.AccessCount += 1
 	ana.LastAccessDate = time.Now().Format(TimeFormat)
+	ana.ResultCount = result
 
 	err = db.Database.Save(ana).Error
 

@@ -36,7 +36,7 @@ type (
 	}
 
 	Analysis struct {
-		AccessCount int64 `gorm:"default:0"`
+		AccessCount    int64 `gorm:"default:0"`
 		LastAccessDate string
 	}
 
@@ -47,7 +47,8 @@ type (
 
 	SearchAnalysis struct {
 		Analysis
-		SearchHash string `gorm:"primaryKey"`
-		SearchText string
+		SearchHash  string `gorm:"primaryKey"`
+		SearchText  string
+		ResultCount int
 	}
 )
