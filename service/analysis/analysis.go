@@ -54,7 +54,7 @@ func RecordSearchText(txt string, result int) {
 	logger.Infof("搜索數據儲存成功: %q 已被搜索 %d 次", ana.SearchText, ana.AccessCount)
 }
 
-func RecordSearchUser(uid int64) {
+func RecordSearchUser(uid int64, name string) {
 	ana := &db.UserAnalysis{}
 
 	err := db.Database.FirstOrCreate(ana, db.UserAnalysis{Uid: uid}).Error
@@ -64,6 +64,7 @@ func RecordSearchUser(uid int64) {
 		return
 	}
 
+	ana.UserName = name
 	ana.AccessCount += 1
 	ana.LastAccessDate = time.Now().Format(TimeFormat)
 
@@ -74,5 +75,5 @@ func RecordSearchUser(uid int64) {
 		return
 	}
 
-	logger.Infof("vup統計數據儲存成功: %d 已被訪問 %d 次", ana.Uid, ana.AccessCount)
+	logger.Infof("vup統計數據儲存成功: %s(%d) 已被訪問 %d 次", name, ana.Uid, ana.AccessCount)
 }
