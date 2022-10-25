@@ -15,7 +15,7 @@ RUN go build -o /go/bin/dd_vup_stats
 FROM alpine:latest
 
 COPY --from=builder /go/bin/dd_vup_stats /dd_vup_stats
-COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 
 RUN chmod +x /dd_vup_stats
 
