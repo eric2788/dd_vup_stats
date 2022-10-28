@@ -49,14 +49,7 @@ func main() {
 	go blive.StartWebSocket(ctx, wg)
 	go statistics.StartListenStats(ctx)
 
-	router := gin.Default()
-
-	router.Use(CORS())
-	router.Use(ErrorHandler)
-
-	user.Register(router.Group("/user"))
-	stats.Register(router.Group("/stats"))
-	records.Register(router.Group("/records"))
+	router := gin.New()
 
 	if os.Getenv("SKIP_RECORDS_LOG") == "true" {
 		router.Use(func(c *gin.Context) {
@@ -68,6 +61,13 @@ func main() {
 			gin.Logger()(c)
 		})
 	}
+
+	router.Use(CORS())
+	router.Use(ErrorHandler)
+
+	user.Register(router.Group("/user"))
+	stats.Register(router.Group("/stats"))
+	records.Register(router.Group("/records"))
 
 	if err := router.Run(":8086"); err != nil {
 		logrus.Errorf("Error while starting server: %v", err)
