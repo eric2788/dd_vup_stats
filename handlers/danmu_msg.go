@@ -63,9 +63,12 @@ func danmuMsg(data *blive.LiveData) error {
 	if obj, ok := base[13].(map[string]interface{}); ok {
 		imageUrl = obj["url"].(string)
 		display = fmt.Sprintf("%s 在 %s 的直播间发送了一则表情包:", uname, data.LiveInfo.Name)
+		logger.Infof("%s 在 %s 的直播间发送了一则表情包: [%s]", uname, data.LiveInfo.Name, danmu)
+	} else {
+		logger.Info(display)
 	}
 
-	logger.Infof("%s 在 %s 的直播间发送了一则表情包: [%s]", uname, data.LiveInfo.Name, danmu)
+	
 
 	behaviour := &db.Behaviour{
 		Uid:       uid,
