@@ -54,6 +54,8 @@ func guardBuyMsg(data *blive.LiveData) error {
 
 	display := fmt.Sprintf("在 %s 的直播间收到来自 %s 的 %s", data.LiveInfo.Name, guardBuy.Username, guardName)
 
+	logger.Info(display)
+
 	behaviour := &db.Behaviour{
 		Uid:       uid,
 		CreatedAt: time.Now(),

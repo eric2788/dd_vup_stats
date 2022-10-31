@@ -55,6 +55,7 @@ func superChatMsg(data *blive.LiveData) error {
 	price := superchat.Price
 
 	display := fmt.Sprintf("在 %s 的直播间收到来自 %s 的 %v 元醒目留言: %s", data.LiveInfo.Name, superchat.UserInfo.UName, price, message)
+	logger.Info(display)
 
 	// 將訊息記錄到資料庫
 	behaviour := &db.Behaviour{
