@@ -24,6 +24,13 @@ func aTestGetVup(t *testing.T) {
 	}
 }
 
+func TestGetVupJsonOoo(t *testing.T) {
+	_, err := statistics.GetVtbListOoo()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func aTestSearchVups(t *testing.T) {
 	vup, err := SearchVups("", 1, 5, "last_listened_at", true)
 	if err != nil {
