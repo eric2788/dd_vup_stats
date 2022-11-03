@@ -12,10 +12,10 @@ type (
 	}
 
 	VupJsonData struct {
-		Name string `json:"name"`
-		Type string `json:"type"`
-		RoomId string `json:"room_id"`
-		Face string `json:"face"`
+		Name   string `json:"name"`
+		Type   string `json:"type"`
+		RoomId int64  `json:"room_id"`
+		Face   string `json:"face"`
 	}
 
 	UserResp struct {
