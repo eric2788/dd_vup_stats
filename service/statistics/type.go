@@ -11,6 +11,13 @@ type (
 		Uuid string `json:"uuid"`
 	}
 
+	VupJsonData struct {
+		Name string `json:"name"`
+		Type string `json:"type"`
+		RoomId string `json:"room_id"`
+		Face string `json:"face"`
+	}
+
 	UserResp struct {
 		Code    int    `json:"code"`
 		Message string `json:"message"`

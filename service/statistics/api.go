@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/corpix/uarand"
 	"io"
 	"net/http"
 	"os"
 	"vup_dd_stats/service/blive"
+
+	"github.com/corpix/uarand"
 )
 
 func GetListening() (*ListeningStats, error) {
@@ -41,8 +42,23 @@ func GetListeningInfo(roomId int64) (*blive.ListeningInfo, error) {
 	return info, err
 }
 
+func GetVtbListOoo() (map[string]VupJsonData, error) {
+	res, err := httpGet("https://vup-json.bilibili.ooo/vup-room.json")
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	var resp map[string]VupJsonData
+	err = json.Unmarshal(b, &resp)
+	return resp, err
+}
+
 func GetVtbListVtbMoe() ([]VtbsMoeResp, error) {
-	res, err := httpGet("https://api.tokyo.vtbs.moe/v1/vtbs")
+	res, err := httpGet("https://api.vtbs.moe/v1/vtbs")
 	if err != nil {
 		return nil, err
 	}
