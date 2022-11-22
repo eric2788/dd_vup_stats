@@ -60,7 +60,7 @@ func superChatMsg(data *blive.LiveData) error {
 	// 將訊息記錄到資料庫
 	behaviour := &db.Behaviour{
 		Uid:       uid,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 		TargetUid: targetUid,
 		Command:   data.Command,
 		Display:   display,

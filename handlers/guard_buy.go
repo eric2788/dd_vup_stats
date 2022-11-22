@@ -58,7 +58,7 @@ func guardBuyMsg(data *blive.LiveData) error {
 
 	behaviour := &db.Behaviour{
 		Uid:       uid,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 		TargetUid: targetUid,
 		Command:   data.Command,
 		Display:   display,

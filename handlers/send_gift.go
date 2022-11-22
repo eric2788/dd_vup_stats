@@ -71,7 +71,7 @@ func giftMsg(data *blive.LiveData) error {
 	// 将送礼行为记录到数据库
 	behaviour := &db.Behaviour{
 		Uid:       uid,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 		TargetUid: targetUid,
 		Command:   data.Command,
 		Display:   display,

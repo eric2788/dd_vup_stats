@@ -1,9 +1,10 @@
 package db
 
 import (
+	"testing"
+
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
-	"testing"
 )
 
 type Stats struct {
