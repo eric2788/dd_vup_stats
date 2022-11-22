@@ -119,7 +119,7 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 
 func GetLastListen(vup *UserInfo, listening bool) time.Time {
 
-	lastListenAt := time.Now()
+	lastListenAt := time.Now().UTC()
 
 	if !listening {
 

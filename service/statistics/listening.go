@@ -3,12 +3,13 @@ package statistics
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/exp/maps"
-	"gorm.io/gorm/clause"
 	"time"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/utils/set"
+
+	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/maps"
+	"gorm.io/gorm/clause"
 )
 
 var (
@@ -159,7 +160,6 @@ func fetchListeningInfo() {
 
 	logger.Debugf("已成功從 %v 個監聽虛擬主播的房間中提取 %v 個房間在資料庫的監聽數據。", len(stats.Rooms), len(roomIds))
 
-
 	/* -- timeout
 	vtbList, err := GetVtbListVtbMoe()
 
@@ -277,7 +277,7 @@ func fetchListeningInfo() {
 			Uid:           listenInfo.UID,
 			Name:          listenInfo.Name,
 			Face:          listenInfo.UserFace,
-			FirstListenAt: time.Now(),
+			FirstListenAt: time.Now().UTC(),
 			RoomId:        listenInfo.RoomId,
 			Sign:          listenInfo.UserDescription,
 		}
