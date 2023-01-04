@@ -7,9 +7,18 @@ type (
 	}
 
 	VtbsMoeResp struct {
-		Mid  int64  `json:"mid"`
-		Uuid string `json:"uuid"`
+		Mid    int64  `json:"mid"`
+		UName  string `json:"uname"`
+		RoomId int64  `json:"roomid"`
 	}
+
+	// Common
+	VupData struct {
+		Name   string
+		RoomId int64
+	}
+
+	VupFetcher func() (map[int64]VupData, error)
 
 	VupJsonData struct {
 		Name   string `json:"name"`

@@ -160,20 +160,16 @@ func fetchListeningInfo() {
 
 	logger.Debugf("已成功從 %v 個監聽虛擬主播的房間中提取 %v 個房間在資料庫的監聽數據。", len(stats.Rooms), len(roomIds))
 
-	/* -- timeout
 	vtbList, err := GetVtbListVtbMoe()
 
 	if err != nil {
-		logger.Errorf("請求vtb數據列表時出現錯誤: %v", err)
-		vtbList = make([]VtbsMoeResp, 0)
+		logger.Errorf("使用 vtb.moe 請求vtb數據列表時出現錯誤: %v, 将使用后备 API", err)
+		vtbList, err = GetVtbListOoo()
 	}
-	*/
-
-	vtbList, err := GetVtbListOoo()
 
 	if err != nil {
-		logger.Errorf("請求vtb數據列表時出現錯誤: %v", err)
-		vtbList = make(map[string]VupJsonData, 0)
+		logger.Errorf("使用后备 API 請求vtb數據列表時依然錯誤: %v, 将返回空列表", err)
+		vtbList = make(map[int64]VupData, 0)
 	}
 
 	roomSet := set.FromArray(roomIds)
@@ -249,18 +245,7 @@ func fetchListeningInfo() {
 		// 如果先前已發現是有閃電主播，則無需再做過濾
 		if !found {
 
-			// 否則檢查是否在 vtb list 內
-
-			/* -- timeout
-			for _, resp := range vtbList {
-				if resp.Mid == listenInfo.UID {
-					found = true
-					break
-				}
-			}
-			*/
-
-			if _, ok := vtbList[fmt.Sprintf("%v", listenInfo.UID)]; ok {
+			if _, ok := vtbList[listenInfo.UID]; ok {
 				found = true
 			}
 

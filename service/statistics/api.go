@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"vup_dd_stats/service/blive"
 
 	"github.com/corpix/uarand"
@@ -42,7 +43,7 @@ func GetListeningInfo(roomId int64) (*blive.ListeningInfo, error) {
 	return info, err
 }
 
-func GetVtbListOoo() (map[string]VupJsonData, error) {
+func GetVtbListOoo() (map[int64]VupData, error) {
 	res, err := httpGet("https://vup-json.bilibili.ooo/vup-room.json")
 	if err != nil {
 		return nil, err
@@ -54,11 +55,26 @@ func GetVtbListOoo() (map[string]VupJsonData, error) {
 	}
 	var resp map[string]VupJsonData
 	err = json.Unmarshal(b, &resp)
-	return resp, err
+	if err != nil {
+		return nil, err
+	}
+	var results = make(map[int64]VupData)
+	for k, v := range resp {
+		uid, err := strconv.ParseInt(k, 10, 64)
+		if err != nil {
+			logger.Errorf("parse uid %v failed for %s: %v, skipped", k, v.Name, err)
+			continue
+		}
+		results[uid] = VupData{
+			Name:   v.Name,
+			RoomId: v.RoomId,
+		}
+	}
+	return results, nil
 }
 
-func GetVtbListVtbMoe() ([]VtbsMoeResp, error) {
-	res, err := httpGet("https://api.vtbs.moe/v1/vtbs")
+func GetVtbListVtbMoe() (map[int64]VupData, error) {
+	res, err := httpGet("https://api.vtbs.moe/v1/short")
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +85,17 @@ func GetVtbListVtbMoe() ([]VtbsMoeResp, error) {
 	}
 	var resp []VtbsMoeResp
 	err = json.Unmarshal(b, &resp)
-	return resp, err
+	if err != nil {
+		return nil, err
+	}
+	var results = make(map[int64]VupData)
+	for _, v := range resp {
+		results[v.Mid] = VupData{
+			Name:   v.UName,
+			RoomId: v.RoomId,
+		}
+	}
+	return results, nil
 }
 
 func GetUserInfo(uid int64) (*UserResp, error) {

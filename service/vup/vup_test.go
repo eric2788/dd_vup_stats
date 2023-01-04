@@ -2,11 +2,13 @@ package vup
 
 import (
 	"encoding/json"
-	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 	"testing"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/statistics"
+
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/maps"
 )
 
 func aTestGetVup(t *testing.T) {
@@ -44,10 +46,7 @@ func aTestDeleteNonVups(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	vtbUids := make([]int64, len(vtbs))
-	for i, vtb := range vtbs {
-		vtbUids[i] = vtb.Mid
-	}
+	vtbUids := maps.Keys(vtbs)
 	result := db.Database.Delete(&db.Vup{}, "uid NOT IN ?", vtbUids)
 
 	if result.Error != nil {
