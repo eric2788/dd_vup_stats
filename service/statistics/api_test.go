@@ -23,3 +23,19 @@ func TestGetUserInfo(t *testing.T) {
 	assert.Equal(t, int64(85650700), res.Data.Mid)
 	assert.Equal(t, 0, res.Data.Official.Role)
 }
+
+func TestGetVtbMoe(t *testing.T) {
+	vtbs, err := GetVtbListVtbMoe()
+	if err != nil {
+		t.Skip(err)
+	}
+	t.Log(vtbs)
+}
+
+func TestGetVtbOoo(t *testing.T) {
+	vtbs, err := GetVtbListOoo()
+	if err != nil {
+		t.Skip(err)
+	}
+	t.Log(vtbs)
+}
