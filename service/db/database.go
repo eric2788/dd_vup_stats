@@ -1,11 +1,13 @@
 package db
 
 import (
+	"os"
+	"strings"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"os"
-	"strings"
 )
 
 var (
@@ -44,6 +46,15 @@ func InitDB() {
 
 	if err != nil {
 		log.Fatalf("啟動資料庫時出現錯誤: %v", err)
+	}
+
+	pool, err := db.DB()
+	if err == nil {
+		pool.SetMaxIdleConns(10)
+		pool.SetMaxOpenConns(100)
+		pool.SetConnMaxLifetime(time.Minute * 10)
+	} else {
+		log.Warnf("設定資料庫連接池時出現錯誤: %v", err)
 	}
 
 	log.Info("資料庫連接成功")
