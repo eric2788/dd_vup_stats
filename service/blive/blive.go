@@ -39,7 +39,7 @@ func handleMessage(b []byte) {
 			logger.Warnf("處理數據 %v 時出現錯誤: %v", liveData.Command, err)
 		}
 	} else if !exceptions.Has(liveData.Command) {
-		logger.Warnf("未知的數據類型: %s", liveData.Command)
+		logger.Debugf("未知的數據類型: %s", liveData.Command)
 		exceptions.Add(liveData.Command)
 	}
 }
