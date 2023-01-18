@@ -27,7 +27,7 @@ func aTestGetVup(t *testing.T) {
 }
 
 func TestGetVupJsonOoo(t *testing.T) {
-	_, err := statistics.GetVtbListOoo()
+	_, err := statistics.GetVtbListLaplace()
 	if err != nil {
 		t.Fatal(err)
 	}

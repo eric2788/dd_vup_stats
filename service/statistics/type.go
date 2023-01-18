@@ -21,10 +21,11 @@ type (
 	VupFetcher func() (map[int64]VupData, error)
 
 	VupJsonData struct {
-		Name   string `json:"name"`
-		Type   string `json:"type"`
-		RoomId int64  `json:"room_id"`
-		Face   string `json:"face"`
+		Name      string `json:"name"`
+		Type      string `json:"type"`
+		RoomId    int64  `json:"room"`
+		Face      string `json:"face"`
+		GroupName string `json:"group_name"`
 	}
 
 	UserResp struct {

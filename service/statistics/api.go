@@ -43,8 +43,9 @@ func GetListeningInfo(roomId int64) (*blive.ListeningInfo, error) {
 	return info, err
 }
 
-func GetVtbListOoo() (map[int64]VupData, error) {
-	res, err := httpGet("https://vup-json.bilibili.ooo/vup-room.json")
+func GetVtbListLaplace() (map[int64]VupData, error) {
+	// legacy: https://vup-json.bilibili.ooo/vup.json
+	res, err := httpGet("https://vup-json.laplace.live/vup-slim.json")
 	if err != nil {
 		return nil, err
 	}

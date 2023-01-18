@@ -164,7 +164,7 @@ func fetchListeningInfo() {
 
 	if err != nil {
 		logger.Errorf("使用 vtb.moe 請求vtb數據列表時出現錯誤: %v, 将使用后备 API", err)
-		vtbList, err = GetVtbListOoo()
+		vtbList, err = GetVtbListLaplace()
 	}
 
 	if err != nil {

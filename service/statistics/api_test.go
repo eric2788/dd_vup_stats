@@ -1,9 +1,10 @@
 package statistics
 
 import (
+	"testing"
+
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestGetUserInfo(t *testing.T) {
@@ -33,7 +34,7 @@ func TestGetVtbMoe(t *testing.T) {
 }
 
 func TestGetVtbOoo(t *testing.T) {
-	vtbs, err := GetVtbListOoo()
+	vtbs, err := GetVtbListLaplace()
 	if err != nil {
 		t.Skip(err)
 	}
