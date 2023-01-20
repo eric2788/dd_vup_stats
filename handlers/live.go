@@ -9,6 +9,11 @@ import (
 
 func updateInfo(data *blive.LiveData) error {
 
+	// filter duplicate
+	if _, ok := data.Content["live_time"]; !ok {
+		return nil
+	}
+
 	if exist, err := vup.IsVup(data.LiveInfo.UID); err != nil {
 		return err
 	} else if !exist {

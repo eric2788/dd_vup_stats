@@ -3,9 +3,10 @@ package vup
 import (
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"math"
 	"vup_dd_stats/service/db"
+
+	"gorm.io/gorm"
 )
 
 func GetTopDDRecords(uid int64, limit int) ([]db.Behaviour, error) {
@@ -104,6 +105,8 @@ func GetGlobalRecords(search, cmd string, page, pageSize int, showSelf bool) (*L
 	if err != nil {
 		return nil, err
 	}
+
+	go logger.Info("记录行为搜索: %s", search)
 
 	return &ListResp[RecordResp]{
 		Total:   totalSearchCount,
