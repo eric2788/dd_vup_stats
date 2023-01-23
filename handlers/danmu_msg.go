@@ -3,11 +3,13 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"gorm.io/gorm"
 	"strings"
 	"time"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/vup"
+	"vup_dd_stats/service/watcher"
 )
 
 func danmuMsg(data *blive.LiveData) error {
@@ -32,28 +34,28 @@ func danmuMsg(data *blive.LiveData) error {
 	// DD的人
 	uid := int64(userInfo[0].(float64))
 
-	// 先檢查 DD的人 是否在 vup 資料表中，如果是就記錄
-	exist, err := vup.IsVup(uid)
+	// 先檢查被DD的人 是否在 vup 資料表中，如果是就記錄
+	isVup, err := vup.IsVup(targetUid)
 
 	if err != nil {
 		return err
 	}
 
 	// 不知名用戶
-	if !exist {
+	if !isVup {
 		return nil
 	}
 
-	// 再檢查被DD的人 是否在 vup 資料表中，如果是就記錄
-	exist, err = vup.IsVup(targetUid)
+	// 再檢查DD的人 是否在 vup 資料表中，如果是就記錄
+	isVup, err = vup.IsVup(uid)
 
 	if err != nil {
 		return err
 	}
 
-	// 不知名用戶
-	if !exist {
-		return nil
+	var log = logger.Infof
+	if !isVup {
+		log = logger.Debugf
 	}
 
 	var imageUrl = ""
@@ -63,12 +65,10 @@ func danmuMsg(data *blive.LiveData) error {
 	if obj, ok := base[13].(map[string]interface{}); ok {
 		imageUrl = obj["url"].(string)
 		display = fmt.Sprintf("%s 在 %s 的直播间发送了一则表情包:", uname, data.LiveInfo.Name)
-		logger.Infof("%s 在 %s 的直播间发送了一则表情包: [%s]", uname, data.LiveInfo.Name, danmu)
+		log("%s 在 %s 的直播间发送了一则表情包: [%s]", uname, data.LiveInfo.Name, danmu)
 	} else {
-		logger.Info(display)
+		log(display)
 	}
-
-	
 
 	behaviour := &db.Behaviour{
 		Uid:       uid,
@@ -82,12 +82,19 @@ func danmuMsg(data *blive.LiveData) error {
 		},
 	}
 
-	result := db.Database.Create(behaviour)
+	var result *gorm.DB
+
+	if isVup {
+		result = db.Database.Create(behaviour)
+	} else {
+		watcher.SaveWatcher(uid)
+		result = db.Database.Create(behaviour.ToWatcherBehaviour())
+	}
 
 	if result.Error != nil {
 		logger.Warnf("記錄彈幕訊息行為到資料庫失敗: %v", result.Error)
 	} else {
-		logger.Infof("記錄彈幕訊息行為到資料庫成功。(%v 筆資料)", result.RowsAffected)
+		log("記錄彈幕訊息行為到資料庫成功。(%v 筆資料)", result.RowsAffected)
 	}
 
 	return nil

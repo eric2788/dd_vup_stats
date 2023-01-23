@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"fmt"
+	"gorm.io/gorm"
 	"time"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/vup"
+	"vup_dd_stats/service/watcher"
 )
 
 func guardBuyMsg(data *blive.LiveData) error {
@@ -26,35 +28,35 @@ func guardBuyMsg(data *blive.LiveData) error {
 	// 收到舰长的人
 	targetUid := data.LiveInfo.UID
 
-	// 先检查 送舰长的人 是否在 vup 资料表中，如果是就记录
-	exist, err := vup.IsVup(uid)
+	// 先检查 收到舰长的人 是否在 vup 资料表中，如果是就记录
+	isVup, err := vup.IsVup(targetUid)
 
 	if err != nil {
 		return err
 	}
 
 	// 不知名用户
-	if !exist {
+	if !isVup {
 		return nil
 	}
 
-	// 再检查 收到舰长的人 是否在 vup 资料表中，如果是就记录
-	exist, err = vup.IsVup(targetUid)
+	// 再检查 送舰长的人 是否在 vup 资料表中，如果是就记录
+	isVup, err = vup.IsVup(uid)
 
 	if err != nil {
 		return err
 	}
 
-	// 不知名用户
-	if !exist {
-		return nil
+	var log = logger.Infof
+	if !isVup {
+		log = logger.Debugf
 	}
 
 	guardName := guardBuy.RoleName
 
 	display := fmt.Sprintf("在 %s 的直播间收到来自 %s 的 %s", data.LiveInfo.Name, guardBuy.Username, guardName)
 
-	logger.Info(display)
+	log(display)
 
 	behaviour := &db.Behaviour{
 		Uid:       uid,
@@ -65,12 +67,19 @@ func guardBuyMsg(data *blive.LiveData) error {
 		Price:     float64(guardBuy.Price / 1000),
 	}
 
-	result := db.Database.Create(behaviour)
+	var result *gorm.DB
+
+	if isVup {
+		result = db.Database.Create(behaviour)
+	} else {
+		watcher.SaveWatcher(uid)
+		result = db.Database.Create(behaviour.ToWatcherBehaviour())
+	}
 
 	if result.Error != nil {
 		logger.Warnf("記錄上舰行為到資料庫失敗: %v", result.Error)
 	} else {
-		logger.Infof("記錄上舰行為到資料庫成功。(%v 筆資料)", result.RowsAffected)
+		log("記錄上舰行為到資料庫成功。(%v 筆資料)", result.RowsAffected)
 	}
 
 	return nil

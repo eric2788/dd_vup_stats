@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"fmt"
+	"gorm.io/gorm"
 	"strconv"
 	"time"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/vup"
+	"vup_dd_stats/service/watcher"
 )
 
 func giftMsg(data *blive.LiveData) error {
@@ -38,35 +40,35 @@ func giftMsg(data *blive.LiveData) error {
 	// 收到礼物的人
 	targetUid := data.LiveInfo.UID
 
-	// 先检查 送礼物的人 是否在 vup 资料表中，如果是就记录
-	exist, err := vup.IsVup(uid)
+	// 先检查 收到礼物的人 是否在 vup 资料表中，如果是就记录
+	isVup, err := vup.IsVup(targetUid)
 
 	if err != nil {
 		return err
 	}
 
 	// 不知名用户
-	if !exist {
+	if !isVup {
 		return nil
 	}
 
-	// 再检查 收到礼物的人 是否在 vup 资料表中，如果是就记录
-	exist, err = vup.IsVup(targetUid)
+	// 再检查 送礼物的人 是否在 vup 资料表中，如果是就记录
+	isVup, err = vup.IsVup(uid)
 
 	if err != nil {
 		return err
 	}
 
-	// 不知名用户
-	if !exist {
-		return nil
+	var log = logger.Infof
+	if !isVup {
+		log = logger.Debugf
 	}
 
 	giftName := gift.GiftName
 	number := gift.Num
 
 	display := fmt.Sprintf("在 %s 的直播间收到来自 %s 的 %v 个 %s (%v元)", data.LiveInfo.Name, gift.Uname, number, giftName, price)
-	logger.Infof(display)
+	log(display)
 
 	// 将送礼行为记录到数据库
 	behaviour := &db.Behaviour{
@@ -78,12 +80,19 @@ func giftMsg(data *blive.LiveData) error {
 		Price:     price,
 	}
 
-	result := db.Database.Create(behaviour)
+	var result *gorm.DB
+
+	if isVup {
+		result = db.Database.Create(behaviour)
+	} else {
+		watcher.SaveWatcher(uid)
+		result = db.Database.Create(behaviour.ToWatcherBehaviour())
+	}
 
 	if result.Error != nil {
 		logger.Warnf("記錄送礼行為到資料庫失敗: %v", result.Error)
 	} else {
-		logger.Infof("記錄送礼行为到資料庫成功。(%v 筆資料)", result.RowsAffected)
+		log("記錄送礼行为到資料庫成功。(%v 筆資料)", result.RowsAffected)
 	}
 
 	return nil

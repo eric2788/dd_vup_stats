@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 	"vup_dd_stats/service/db"
+	"vup_dd_stats/service/watcher"
 	"vup_dd_stats/utils/set"
 
 	"github.com/sirupsen/logrus"
@@ -257,6 +258,9 @@ func fetchListeningInfo() {
 			//logger.Debugf("用戶不是vtb或高能主播: %d (%d)", room, listenInfo.UID)
 			continue
 		}
+
+		// migrate if this uid is in watcher table, so that to move the records existed since from watcher_behaviour
+		go watcher.MigrateToVup(listenInfo.UID)
 
 		vup := &db.Vup{
 			Uid:           listenInfo.UID,

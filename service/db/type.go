@@ -7,14 +7,15 @@ import (
 
 type (
 	Vup struct {
-		Uid              int64 `gorm:"primaryKey;autoIncrement:false"`
-		Name             string
-		Face             string
-		FirstListenAt    time.Time
-		RoomId           int64
-		Sign             string
-		Behaviours       []*Behaviour `gorm:"foreignKey:Uid;references:Uid;OnDelete:CASCADE"`
-		TargetBehaviours []*Behaviour `gorm:"foreignKey:TargetUid;references:Uid;OnDelete:CASCADE"`
+		Uid               int64 `gorm:"primaryKey;autoIncrement:false"`
+		Name              string
+		Face              string
+		FirstListenAt     time.Time
+		RoomId            int64
+		Sign              string
+		Behaviours        []*Behaviour        `gorm:"foreignKey:Uid;references:Uid;OnDelete:CASCADE"`
+		TargetBehaviours  []*Behaviour        `gorm:"foreignKey:TargetUid;references:Uid;OnDelete:CASCADE"`
+		WatcherBehaviours []*WatcherBehaviour `gorm:"foreignKey:TargetUid;references:Uid;OnDelete:CASCADE"`
 
 		LastListen *LastListen `gorm:"foreignKey:Uid;references:Uid;OnDelete:CASCADE"`
 	}
@@ -42,7 +43,7 @@ type (
 
 	UserAnalysis struct {
 		Analysis
-		Uid int64 `gorm:"primaryKey;autoIncrement:false"`
+		Uid      int64 `gorm:"primaryKey;autoIncrement:false"`
 		UserName string
 	}
 
@@ -52,4 +53,46 @@ type (
 		SearchText  string
 		ResultCount int64
 	}
+
+	Watcher struct {
+		Uid        int64 `gorm:"primaryKey;autoIncrement:false"`
+		UserName   string
+		Face       string
+		Behaviours []*WatcherBehaviour `gorm:"foreignKey:Uid;references:Uid;OnDelete:CASCADE"`
+	}
+
+	WatcherBehaviour struct {
+		ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
+		Uid       int64          `json:"uid"`
+		CreatedAt time.Time      `json:"created_at"`
+		TargetUid int64          `json:"target_uid"`
+		Command   string         `json:"command"`
+		Display   string         `json:"display"`
+		Image     sql.NullString `json:"image"`
+		Price     float64        `json:"price" gorm:"default:0"`
+	}
 )
+
+func (b *Behaviour) ToWatcherBehaviour() *WatcherBehaviour {
+	return &WatcherBehaviour{
+		Uid:       b.Uid,
+		CreatedAt: b.CreatedAt,
+		TargetUid: b.TargetUid,
+		Command:   b.Command,
+		Display:   b.Display,
+		Image:     b.Image,
+		Price:     b.Price,
+	}
+}
+
+func (wb *WatcherBehaviour) ToBehaviour() *Behaviour {
+	return &Behaviour{
+		Uid:       wb.Uid,
+		CreatedAt: wb.CreatedAt,
+		TargetUid: wb.TargetUid,
+		Command:   wb.Command,
+		Display:   wb.Display,
+		Image:     wb.Image,
+		Price:     wb.Price,
+	}
+}
