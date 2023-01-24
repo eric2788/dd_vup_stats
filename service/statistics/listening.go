@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 	"vup_dd_stats/service/db"
-	v "vup_dd_stats/service/vup"
 	"vup_dd_stats/utils/set"
 
 	"github.com/sirupsen/logrus"
@@ -264,7 +263,7 @@ func fetchListeningInfo() {
 		// migrate if this uid is in watcher table, so that to move the records existed since from watcher_behaviour
 		// add the function as deferred function so that it WILL ONLY RUN when the whole process is successful
 		deferrer.Defer(func() {
-			v.MigrateToVup(listenInfo.UID)
+			db.MigrateToVup(listenInfo.UID)
 		})
 
 		vup := &db.Vup{
