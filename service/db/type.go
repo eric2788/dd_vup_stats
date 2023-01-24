@@ -54,16 +54,10 @@ type (
 		ResultCount int64
 	}
 
-	Watcher struct {
-		Uid        int64 `gorm:"primaryKey;autoIncrement:false"`
-		UserName   string
-		Face       string
-		Behaviours []*WatcherBehaviour `gorm:"foreignKey:Uid;references:Uid;OnDelete:CASCADE"`
-	}
-
 	WatcherBehaviour struct {
 		ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
 		Uid       int64          `json:"uid"`
+		UName     string         `json:"u_name"`
 		CreatedAt time.Time      `json:"created_at"`
 		TargetUid int64          `json:"target_uid"`
 		Command   string         `json:"command"`
@@ -73,9 +67,10 @@ type (
 	}
 )
 
-func (b *Behaviour) ToWatcherBehaviour() *WatcherBehaviour {
+func (b *Behaviour) ToWatcherBehaviour(uname string) *WatcherBehaviour {
 	return &WatcherBehaviour{
 		Uid:       b.Uid,
+		UName:     uname,
 		CreatedAt: b.CreatedAt,
 		TargetUid: b.TargetUid,
 		Command:   b.Command,

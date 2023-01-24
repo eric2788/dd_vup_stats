@@ -47,4 +47,18 @@ type (
 			}
 		} `json:"data"`
 	}
+
+	Deferrer struct {
+		functions []func()
+	}
 )
+
+func (d *Deferrer) Defer(f func()) {
+	d.functions = append(d.functions, f)
+}
+
+func (d *Deferrer) Run() {
+	for _, f := range d.functions {
+		go f()
+	}
+}

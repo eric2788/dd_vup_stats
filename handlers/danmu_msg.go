@@ -9,7 +9,6 @@ import (
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/vup"
-	"vup_dd_stats/service/watcher"
 )
 
 func danmuMsg(data *blive.LiveData) error {
@@ -87,8 +86,7 @@ func danmuMsg(data *blive.LiveData) error {
 	if isVup {
 		result = db.Database.Create(behaviour)
 	} else {
-		watcher.SaveWatcher(uid)
-		result = db.Database.Create(behaviour.ToWatcherBehaviour())
+		result = db.Database.Create(behaviour.ToWatcherBehaviour(uname))
 	}
 
 	if result.Error != nil {

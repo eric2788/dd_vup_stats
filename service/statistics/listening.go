@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 	"vup_dd_stats/service/db"
-	"vup_dd_stats/service/watcher"
+	v "vup_dd_stats/service/vup"
 	"vup_dd_stats/utils/set"
 
 	"github.com/sirupsen/logrus"
@@ -78,10 +78,10 @@ func removeUnusedVupListFromRedis() {
 	cacheSet, vupSet := set.FromArray(cache), set.FromArray(vupList)
 
 	i := 0
-	for _, v := range cacheSet.Difference(vupSet).ToArray() {
-		err = db.SetRemove(db.VupListKey, v)
+	for _, vup := range cacheSet.Difference(vupSet).ToArray() {
+		err = db.SetRemove(db.VupListKey, vup)
 		if err != nil {
-			logger.Errorf("從 redis 移除 %v 出虛擬主播列表時出現錯誤: %v", v, err)
+			logger.Errorf("從 redis 移除 %v 出虛擬主播列表時出現錯誤: %v", vup, err)
 			return
 		} else {
 			i++
@@ -179,6 +179,8 @@ func fetchListeningInfo() {
 
 	userExist, userNotVtb, userBlackListed := 0, 0, 0
 
+	deferrer := &Deferrer{}
+
 	// 只新增未有記錄的vup
 	for _, room := range stats.Rooms {
 
@@ -260,7 +262,10 @@ func fetchListeningInfo() {
 		}
 
 		// migrate if this uid is in watcher table, so that to move the records existed since from watcher_behaviour
-		go watcher.MigrateToVup(listenInfo.UID)
+		// add the function as deferred function so that it WILL ONLY RUN when the whole process is successful
+		deferrer.Defer(func() {
+			v.MigrateToVup(listenInfo.UID)
+		})
 
 		vup := &db.Vup{
 			Uid:           listenInfo.UID,
@@ -300,6 +305,8 @@ func fetchListeningInfo() {
 				logger.Debugf("從 fetchListeningInfo 新增了 %v 到 redis", vup.Uid)
 			}
 		}
+
+		deferrer.Run()
 
 	} else {
 		logger.Debugf("有 %v 筆資料因為資料相同被忽略。", int64(len(toBeInsert))-result.RowsAffected)
