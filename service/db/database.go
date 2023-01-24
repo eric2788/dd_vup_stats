@@ -60,7 +60,7 @@ func InitDB() {
 	log.Info("資料庫連接成功")
 
 	if err = db.
-		AutoMigrate(&Vup{}, &Behaviour{}, &LastListen{}, &UserAnalysis{}, &SearchAnalysis{}); err != nil {
+		AutoMigrate(&Vup{}, &Behaviour{}, &LastListen{}, &UserAnalysis{}, &SearchAnalysis{}, &WatcherBehaviour{}); err != nil {
 		log.Fatalf("Error while auto migrating tables: %v", err)
 	}
 
