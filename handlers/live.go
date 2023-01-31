@@ -3,7 +3,7 @@ package handlers
 import (
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
-	"vup_dd_stats/service/statistics"
+	"vup_dd_stats/service/stats"
 	"vup_dd_stats/service/vup"
 )
 
@@ -20,7 +20,7 @@ func updateInfo(data *blive.LiveData) error {
 		return nil
 	}
 
-	info, err := statistics.GetListeningInfo(data.LiveInfo.RoomId)
+	info, err := stats.GetListeningInfo(data.LiveInfo.RoomId)
 
 	if err != nil {
 		logger.Warnf("刷新 %v 的用戶資訊時出現錯誤: %v, 已略過更新。", data.LiveInfo.Name, err)

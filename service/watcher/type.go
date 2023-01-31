@@ -46,6 +46,7 @@ type (
 
 	WatcherResp struct {
 		WatcherInfo
+		UNames          string             `json:"u_names"`
 		FirstListenAt   time.Time          `json:"first_listen_at"`
 		LastBehaviourAt time.Time          `json:"last_behaviour_at"`
 		DDCount         int64              `json:"dd_count"`
