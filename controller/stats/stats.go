@@ -1,10 +1,11 @@
 package stats
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"strconv"
 	"vup_dd_stats/service/vup"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 var logger = logrus.WithField("controller", "stats")
@@ -76,7 +77,8 @@ func GetGlobalStats(c *gin.Context) {
 		top = 3
 	}
 
-	resp, err := vup.GetGlobalStats(top)
+	statsType := c.DefaultQuery("type", "")	
+	resp, err := vup.GetStatsByType(top, statsType)
 
 	if err != nil {
 		logger.Error(err)

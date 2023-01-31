@@ -1,4 +1,4 @@
-package statistics
+package stats
 
 type (
 	ListeningStats struct {
@@ -51,6 +51,21 @@ type (
 	Deferrer struct {
 		functions []func()
 	}
+
+	ListResp[K any] struct {
+		Page    int   `json:"page"`
+		Size    int   `json:"size"`
+		MaxPage int64 `json:"max_page"`
+		Total   int64 `json:"total"`
+		List    []K   `json:"list"`
+	}
+
+	TotalStats struct {
+		Command string  `json:"command"`
+		Count   int64   `json:"count"`
+		Price   float64 `json:"price"`
+	}
+	
 )
 
 func (d *Deferrer) Defer(f func()) {

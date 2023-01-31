@@ -10,7 +10,7 @@ import (
 	"vup_dd_stats/controller/user"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
-	"vup_dd_stats/service/statistics"
+	statistics "vup_dd_stats/service/stats"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"vup_dd_stats/service/db"
+	"vup_dd_stats/service/stats"
 
 	"gorm.io/gorm"
 )
@@ -69,7 +70,7 @@ func GetTopSelfRecords(uid int64, limit int) ([]db.Behaviour, error) {
 	return behaviours, nil
 }
 
-func GetGlobalRecords(search, cmd string, page, pageSize int, showSelf bool) (*ListResp[RecordResp], error) {
+func GetGlobalRecords(search, cmd string, page, pageSize int, showSelf bool) (*stats.ListResp[RecordResp], error) {
 
 	// ensure page is valid
 	page = int(math.Max(1, float64(page)))
@@ -80,8 +81,7 @@ func GetGlobalRecords(search, cmd string, page, pageSize int, showSelf bool) (*L
 	var records []RecordResp
 
 	r := db.Database.Model(&db.Behaviour{})
-
-	r = buildWhereStatement(r, search, cmd, showSelf)
+	r = buildWhereStatement(r, search, cmd, showSelf).Session(&gorm.Session{})
 
 	err := r.
 		Select("behaviours.*, vups.face as vup_face").
@@ -98,9 +98,7 @@ func GetGlobalRecords(search, cmd string, page, pageSize int, showSelf bool) (*L
 
 	var totalSearchCount int64
 
-	r = db.Database.Model(&db.Behaviour{})
-
-	err = buildWhereStatement(r, search, cmd, showSelf).Count(&totalSearchCount).Error
+	err = r.Count(&totalSearchCount).Error
 
 	if err != nil {
 		return nil, err
@@ -108,7 +106,7 @@ func GetGlobalRecords(search, cmd string, page, pageSize int, showSelf bool) (*L
 
 	go logger.Infof("记录行为搜索: %s", search)
 
-	return &ListResp[RecordResp]{
+	return &stats.ListResp[RecordResp]{
 		Total:   totalSearchCount,
 		List:    records,
 		Page:    page,

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 	"vup_dd_stats/service/db"
-	"vup_dd_stats/service/statistics"
+	"vup_dd_stats/service/stats"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -27,7 +27,7 @@ func aTestGetVup(t *testing.T) {
 }
 
 func TestGetVupJsonOoo(t *testing.T) {
-	_, err := statistics.GetVtbListLaplace()
+	_, err := stats.GetVtbListLaplace()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +42,7 @@ func aTestSearchVups(t *testing.T) {
 }
 
 func aTestDeleteNonVups(t *testing.T) {
-	vtbs, err := statistics.GetVtbListVtbMoe()
+	vtbs, err := stats.GetVtbListVtbMoe()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,11 +60,11 @@ func ainit() {
 	if err := godotenv.Load("./../../.env"); err != nil {
 		logrus.Fatalf("Error while loading environment file: %v", err)
 	}
-	info, err := statistics.GetListening()
+	info, err := stats.GetListening()
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	statistics.Listening = &info.Rooms
+	stats.Listening = &info.Rooms
 	db.InitDB()
 	db.InitRedis()
 }

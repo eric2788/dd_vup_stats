@@ -8,7 +8,7 @@ import (
 	"vup_dd_stats/service/analysis"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
-	"vup_dd_stats/service/statistics"
+	"vup_dd_stats/service/stats"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
@@ -61,7 +61,7 @@ func GetTotalVupCount() (int64, error) {
 
 func GetVup(uid int64) (*UserDetailResp, error) {
 
-	listeningRooms := *(statistics.Listening)
+	listeningRooms := *(stats.Listening)
 
 	var vup UserInfo
 	err := db.Database.
@@ -99,7 +99,7 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 	}
 
 	registeredCommands := blive.GetRegisteredCommands()
-	behaviourCounts := make(map[string]TotalStats, len(registeredCommands))
+	behaviourCounts := make(map[string]stats.TotalStats, len(registeredCommands))
 	for _, command := range registeredCommands {
 		behaviourCounts[command] = GetTotalStatusByCommand(uid, command)
 	}
@@ -114,7 +114,6 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 		},
 		BehavioursCount: behaviourCounts,
 	}, nil
-
 }
 
 func GetLastListen(vup *UserInfo, listening bool) time.Time {
@@ -163,7 +162,7 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 	return lastListenAt
 }
 
-func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*ListResp[UserResp], error) {
+func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*stats.ListResp[UserResp], error) {
 
 	// ensure page is valid
 	page = int(math.Max(1, float64(page)))
@@ -233,7 +232,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 
 	for _, vup := range vups {
 
-		listeningRooms := *(statistics.Listening)
+		listeningRooms := *(stats.Listening)
 
 		var userResp UserResp
 
@@ -251,7 +250,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 	// annoymous record
 	go analysis.RecordSearchText(name, totalSearchCount)
 
-	return &ListResp[UserResp]{
+	return &stats.ListResp[UserResp]{
 		Page:    page,
 		Size:    pageSize,
 		MaxPage: int64(math.Ceil(float64(totalSearchCount) / float64(pageSize))),
@@ -260,28 +259,3 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*Li
 	}, nil
 }
 
-// GetMostDDVups 獲取進入最多不同直播間的 vups
-func GetMostDDVups(limit int) ([]AnalysisUserInfo, error) {
-
-	var mostDDVups []AnalysisUserInfo
-
-	err := db.Database.
-		Model(&db.Behaviour{}).
-		Select([]string{
-			"vups.name",
-			"vups.uid",
-			"vups.room_id",
-			"vups.face",
-			"vups.sign",
-			"COUNT(DISTINCT behaviours.target_uid) as count",
-		}).
-		Joins("left join vups on vups.uid = behaviours.uid").
-		Where("behaviours.target_uid != behaviours.uid").
-		Group("behaviours.uid, vups.uid").
-		Order("count desc").
-		Limit(limit).
-		Find(&mostDDVups).
-		Error
-
-	return mostDDVups, err
-}

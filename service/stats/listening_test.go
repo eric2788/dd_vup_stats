@@ -1,4 +1,4 @@
-package statistics
+package stats
 
 import (
 	"github.com/joho/godotenv"

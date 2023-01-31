@@ -3,17 +3,10 @@ package vup
 import (
 	"time"
 	"vup_dd_stats/service/db"
+	"vup_dd_stats/service/stats"
 )
 
 type (
-	ListResp[K any] struct {
-		Page    int   `json:"page"`
-		Size    int   `json:"size"`
-		MaxPage int64 `json:"max_page"`
-		Total   int64 `json:"total"`
-		List    []K   `json:"list"`
-	}
-
 	RecordResp struct {
 		db.Behaviour
 		VupFace string `json:"vup_face"`
@@ -26,7 +19,7 @@ type (
 
 	UserDetailResp struct {
 		UserResp
-		BehavioursCount map[string]TotalStats `json:"behaviours_count"`
+		BehavioursCount map[string]stats.TotalStats `json:"behaviours_count"`
 	}
 
 	UserInfo struct {
@@ -52,11 +45,6 @@ type (
 		Price float64 `json:"price"`
 	}
 
-	TotalStats struct {
-		Count int64   `json:"count"`
-		Price float64 `json:"price"`
-	}
-
 	PricedUserInfo struct {
 		SimpleUserInfo
 		Spent float64 `json:"spent"`
@@ -68,7 +56,7 @@ type (
 		TopSpentVups []PricedUserInfo   `json:"top_spent_vups"`
 	}
 
-	GlobalStatistics struct {
+	Globalstats struct {
 		TotalVupRecorded      int64              `json:"total_vup_recorded"`
 		CurrentListeningCount int64              `json:"current_listening_count"`
 		MostDDBehaviourVups   []AnalysisUserInfo `json:"most_dd_behaviour_vups"`

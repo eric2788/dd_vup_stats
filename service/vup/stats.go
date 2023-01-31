@@ -3,7 +3,7 @@ package vup
 import (
 	"fmt"
 	"vup_dd_stats/service/db"
-	"vup_dd_stats/service/statistics"
+	"vup_dd_stats/service/stats"
 )
 
 func GetStats(uid int64, limit int) (*Analysis, error) {
@@ -183,58 +183,12 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 	}, nil
 }
 
-func GetGlobalStats(top int) (*GlobalStatistics, error) {
+// GetTotalBehaviourCount get total behaviour count by command
+//
+// Deprecated: use GetCommandStats instead
+func GetTotalStatusByCommand(uid int64, command string) stats.TotalStats {
 
-	s, err := statistics.GetListening()
-	if err != nil {
-		return nil, err
-	}
-
-	listeningCount := s.TotalListeningCount
-
-	recordCount, err := GetTotalVupCount()
-	if err != nil {
-		logger.Errorf("獲取總vup人數出現錯誤: %v", err)
-		return nil, err
-	}
-
-	behaviourCount, err := GetTotalBehaviourCount()
-	if err != nil {
-		logger.Errorf("獲取總dd行為數時出現錯誤: %v", err)
-		return nil, err
-	}
-
-	mostDDBehaviourVups, err := GetMostBehaviourVups(top)
-	if err != nil {
-		logger.Errorf("獲取dd行為最多的vup時出現錯誤: %v", err)
-		return nil, err
-	}
-
-	mostDDVups, err := GetMostDDVups(top)
-	if err != nil {
-		logger.Errorf("獲取dd最多的vup時出現錯誤: %v", err)
-		return nil, err
-	}
-
-	mostSpentVups, err := GetMostSpentPricedVups(top)
-	if err != nil {
-		logger.Errorf("獲取花費最多的vup時出現錯誤: %v", err)
-		return nil, err
-	}
-
-	return &GlobalStatistics{
-		TotalVupRecorded:      recordCount,
-		CurrentListeningCount: listeningCount,
-		MostDDBehaviourVups:   mostDDBehaviourVups,
-		MostDDVups:            mostDDVups,
-		MostSpentVups:         mostSpentVups,
-		TotalDDBehaviours:     behaviourCount,
-	}, nil
-}
-
-func GetTotalStatusByCommand(uid int64, command string) TotalStats {
-
-	var totalStatus TotalStats
+	var totalStatus stats.TotalStats
 
 	err := db.Database.
 		Model(&db.Behaviour{}).
@@ -248,9 +202,31 @@ func GetTotalStatusByCommand(uid int64, command string) TotalStats {
 
 	if err != nil {
 		logger.Errorf("獲取 %v 的 %v 行為時出現錯誤: %v", uid, command, err)
-		return TotalStats{-1, -1}
+		return stats.TotalStats{Command: command, Count: -1, Price: -1}
 	}
 
 	return totalStatus
+}
 
+func GetTotalCommandStats(uid int64) ([]stats.TotalStats, error) {
+	var stats []stats.TotalStats
+
+	err := db.Database.
+		Model(&db.Behaviour{}).
+		Select([]string{
+			"command",
+			"COUNT(*) as count",
+			"SUM(price) as price",
+		}).
+		Where("uid = ? and uid != target_uid", uid).
+		Group("command").
+		Find(&stats).
+		Error
+
+	if err != nil {
+		logger.Errorf("獲取 %v 的行為時出現錯誤: %v", uid, err)
+		return nil, err
+	}
+
+	return stats, nil
 }
