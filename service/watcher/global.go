@@ -25,11 +25,16 @@ func GetMostDDWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 
 	var mostDDWatchers []AnalysisWatcherInfo
 
+	u_name := "u_name"
+	if db.DatabaseType == "postgres" {
+		u_name = "(array_agg(u_name order by created_at desc))[1] as u_name"
+	}
+
 	err := db.Database.
 		Model(&db.WatcherBehaviour{}).
 		Select([]string{
 			"uid",
-			"(array_agg(u_name order by created_at desc))[1] as u_name",
+			u_name,
 			"COUNT(DISTINCT target_uid) as count",
 		}).
 		Group("uid").
@@ -55,11 +60,16 @@ func GetMostBehaviourWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 
 	var mostBehaviourWatchers []AnalysisWatcherInfo
 
+	u_name := "u_name"
+	if db.DatabaseType == "postgres" {
+		u_name = "(array_agg(u_name order by created_at desc))[1] as u_name"
+	}
+
 	err := db.Database.
 		Model(&db.WatcherBehaviour{}).
 		Select([]string{
 			"uid",
-			"(array_agg(u_name order by created_at desc))[1] as u_name",
+			u_name,
 			"COUNT(*) as count",
 		}).
 		Group("uid").
@@ -76,11 +86,16 @@ func GetMostSpentWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 
 	var mostSpentWatchers []AnalysisWatcherInfo
 
+	u_name := "u_name"
+	if db.DatabaseType == "postgres" {
+		u_name = "(array_agg(u_name order by created_at desc))[1] as u_name"
+	}
+
 	err := db.Database.
 		Model(&db.WatcherBehaviour{}).
 		Select([]string{
 			"uid",
-			"(array_agg(u_name order by created_at desc))[1] as u_name",
+			u_name,
 			"SUM(price) as price",
 		}).
 		Group("uid").
@@ -100,11 +115,16 @@ func GetMostBehaviourWatchersByCommand(limit int, command string, price bool) ([
 		orderBy = "price"
 	}
 
+	u_name := "u_name"
+	if db.DatabaseType == "postgres" {
+		u_name = "(array_agg(u_name order by created_at desc))[1] as u_name"
+	}
+
 	err := db.Database.
 		Model(&db.Behaviour{}).
 		Select([]string{
 			"uid",
-			"(array_agg(u_name order by created_at desc))[1] as u_name",
+			u_name,
 			"COUNT(*) as count",
 			"SUM(price) as price",
 		}).
