@@ -1,47 +1,34 @@
 package db
 
 import (
+	"encoding/json"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
 
-type Stats struct {
-	Rooms []int64
+func TestParallel(t *testing.T) {
+	var a []int
+
+	go func() {
+		<-time.After(time.Second * 2)
+		_ = json.Unmarshal([]byte(`[1,2,3]`), &a)
+	}()
+
+	<-time.After(time.Second * 3)
+	t.Log(a)
 }
 
-func aTestInQuery(t *testing.T) {
-	var vups []int64
-
-	var rooms []int64
-
-	r := Database.
-		Model(&Vup{}).
-		Pluck("room_id", &rooms)
-
-	if r.Error != nil {
-		logrus.Fatal(r.Error)
-	}
-
-	logrus.Info(len(rooms))
-
-	r = Database.Model(&Vup{}).
-		Where("room_id in ?", rooms).
-		Pluck("uid", &vups)
-
-	if r.Error != nil {
-		logrus.Fatal(r.Error)
-	}
-
-	logrus.Info(len(vups))
-	logrus.Debugf("affected %v", r.RowsAffected)
-}
-
-func binit() {
+func init() {
 	logrus.SetLevel(logrus.DebugLevel)
 	if err := godotenv.Load("./../../.env"); err != nil {
-		logrus.Fatalf("Error while loading environment file: %v", err)
+		logrus.Errorf("Error while loading environment file: %v", err)
+	}
+	if os.Getenv("DB_TYPE") == "" {
+		return
 	}
 	InitDB()
 }

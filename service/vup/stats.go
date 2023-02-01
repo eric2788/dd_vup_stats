@@ -4,7 +4,92 @@ import (
 	"fmt"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/stats"
+
+	"gorm.io/gorm"
 )
+
+
+// GetStatsConcurrent Test only, need to test the performance
+func GetStatsConcurrent(uid int64, limit int) (*Analysis, error) {
+	var mostDDVups []AnalysisUserInfo
+	var mostGuestVups []AnalysisUserInfo
+	var mostSpentVups []PricedUserInfo
+
+	stream := db.NewParallelStream()
+
+	stream.AddStmt(func() error {
+		return db.Database.
+			Model(&db.Behaviour{}).
+			Joins("left join vups on vups.uid = behaviours.target_uid").
+			Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid", uid).
+			Select([]string{
+				"vups.name",
+				"vups.uid",
+				"vups.room_id",
+				"vups.face",
+				"vups.sign",
+				"COUNT(*) as count",
+				"SUM(behaviours.price) as price",
+			}).
+			Group("behaviours.target_uid, vups.uid").
+			Order("count desc").
+			Limit(limit).
+			Find(&mostDDVups).
+			Error
+	})
+
+	stream.AddStmt(func() error {
+		return db.Database.
+			Model(&db.Behaviour{}).
+			Joins("left join vups on vups.uid = behaviours.uid").
+			Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid", uid).
+			Select([]string{
+				"vups.name",
+				"vups.uid",
+				"vups.room_id",
+				"vups.face",
+				"vups.sign",
+				"COUNT(*) as count",
+				"SUM(behaviours.price) as price",
+			}).
+			Group("behaviours.uid, vups.uid").
+			Order("count desc").
+			Limit(limit).
+			Find(&mostGuestVups).
+			Error
+	})
+
+	stream.AddStmt(func() error {
+		return db.Database.
+			Model(&db.Behaviour{}).
+			Joins("left join vups on vups.uid = behaviours.target_uid").
+			Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.price > 0", uid).
+			Select([]string{
+				"vups.name",
+				"vups.uid",
+				"vups.room_id",
+				"vups.face",
+				"vups.sign",
+				"SUM(behaviours.price) as spent",
+			}).
+			Group("behaviours.target_uid, vups.uid").
+			Order("spent desc").
+			Limit(limit).
+			Find(&mostSpentVups).
+			Error
+	})
+
+	err := stream.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Analysis{
+		TopDDVups:    mostDDVups,
+		TopGuestVups: mostGuestVups,
+		TopSpentVups: mostSpentVups,
+	}, nil
+}
 
 func GetStats(uid int64, limit int) (*Analysis, error) {
 
@@ -66,7 +151,7 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 	err = db.Database.
 		Model(&db.Behaviour{}).
 		Joins("left join vups on vups.uid = behaviours.target_uid").
-		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid", uid).
+		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.price > 0", uid).
 		Select([]string{
 			"vups.name",
 			"vups.uid",
@@ -96,15 +181,19 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 
 	var mostDDVups []AnalysisUserInfo
 
+	r := db.Database.Model(&db.Behaviour{})
+
 	orderBy := "count"
 
 	if price {
 		orderBy = "SUM(price)"
+		r = r.Where("behaviours.price > 0")
 	}
 
+	r = r.Session(&gorm.Session{})
+
 	// D 最多
-	err := db.Database.
-		Model(&db.Behaviour{}).
+	err := r.
 		Joins("left join vups on vups.uid = behaviours.target_uid").
 		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
 		Select([]string{
@@ -129,8 +218,7 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 	var mostGuestVups []AnalysisUserInfo
 
 	// 被 D 最多
-	err = db.Database.
-		Model(&db.Behaviour{}).
+	err = r.
 		Joins("left join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
 		Select([]string{
@@ -151,35 +239,9 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 	if err != nil {
 		return nil, err
 	}
-
-	// 花費最多
-	var mostSpentVups []PricedUserInfo
-	err = db.Database.
-		Model(&db.Behaviour{}).
-		Joins("left join vups on vups.uid = behaviours.target_uid").
-		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
-		Select([]string{
-			"vups.name",
-			"vups.uid",
-			"vups.room_id",
-			"vups.face",
-			"vups.sign",
-			"SUM(behaviours.price) as spent",
-		}).
-		Group("behaviours.target_uid, vups.uid").
-		Order("spent desc").
-		Limit(limit).
-		Find(&mostSpentVups).
-		Error
-
-	if err != nil {
-		return nil, err
-	}
-
 	return &Analysis{
 		TopDDVups:    mostDDVups,
 		TopGuestVups: mostGuestVups,
-		TopSpentVups: mostSpentVups,
 	}, nil
 }
 

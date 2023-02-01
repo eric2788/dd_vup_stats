@@ -162,7 +162,7 @@ func GetMostSpentPricedVups(limit int) ([]PricedUserInfo, error) {
 			"SUM(behaviours.price) as spent",
 		}).
 		Joins("left join vups on vups.uid = behaviours.uid").
-		Where("behaviours.target_uid != behaviours.uid").
+		Where("behaviours.target_uid != behaviours.uid and behaviours.price > 0").
 		Group("behaviours.uid, vups.uid").
 		Order("spent desc").
 		Limit(limit).

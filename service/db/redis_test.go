@@ -1,14 +1,19 @@
 package db
 
 import (
+	"os"
+
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
 
-func ainit() {
+func init() {
 	logrus.SetLevel(logrus.DebugLevel)
 	if err := godotenv.Load("./../../.env"); err != nil {
-		logrus.Fatalf("Error while loading environment file: %v", err)
+		logrus.Errorf("Error while loading environment file: %v", err)
+	}
+	if os.Getenv("REDIS_ADDR") == "" {
+		return
 	}
 	InitRedis()
 }

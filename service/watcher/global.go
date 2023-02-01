@@ -98,6 +98,7 @@ func GetMostSpentWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 			u_name,
 			"SUM(price) as price",
 		}).
+		Where("price > 0").
 		Group("uid").
 		Order("price desc").
 		Limit(limit).
