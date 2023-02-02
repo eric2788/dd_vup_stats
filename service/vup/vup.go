@@ -6,6 +6,7 @@ import (
 	"math"
 	"time"
 	"vup_dd_stats/service/analysis"
+	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/stats"
 
@@ -98,12 +99,23 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 	}
 
 	behaviourCounts := make(map[string]stats.TotalStats)
-	stats, err := GetTotalCommandStats(uid)
+	commandStats, err := GetTotalCommandStats(uid)
 	if err != nil {
 		logger.Errorf("嘗試獲取用戶 %v 的行为统计時出現錯誤: %v", uid, err)
 	} else {
-		for _, stat := range stats {
+		for _, stat := range commandStats {
 			behaviourCounts[stat.Command] = stat
+		}
+
+		// for those didn't appear from table
+		for _, stat := range blive.GetRegisteredCommands() {
+			if _, ok := behaviourCounts[stat]; !ok {
+				behaviourCounts[stat] = stats.TotalStats{
+					Command: stat,
+					Count:   0,
+					Price:   0,
+				}
+			}
 		}
 	}
 
