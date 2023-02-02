@@ -206,42 +206,40 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*st
 	var vups []UserInfo
 	var totalSearchCount int64
 
-	stream := db.NewParallelStream()
+	err := db.Database.
+		Model(&db.Vup{}).
+		Select([]string{
+			"vups.uid",
+			"vups.name",
+			"vups.face",
+			"vups.first_listen_at",
+			"vups.room_id",
+			"vups.sign",
+			"COUNT(behaviours.uid) AS dd_count",
+			"MAX(behaviours.created_at) AS last_behaviour_at",
+			"MAX(last_listens.last_listen_at) AS last_listened_at",
+			"SUM(behaviours.price) AS total_spent",
+		}).
+		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
+		Joins("left join last_listens on last_listens.uid = vups.uid").
+		Where("vups.name like ?", fmt.Sprintf("%%%s%%", name)).
+		Group("behaviours.uid, vups.uid").
+		Order(fmt.Sprintf("%s %s%s", orderBy, order, nullsLast)).
+		Offset((page - 1) * pageSize).
+		Limit(pageSize).
+		Find(&vups).Error
 
-	stream.AddStmt(func() error {
-		return db.Database.
-			Model(&db.Vup{}).
-			Select([]string{
-				"vups.uid",
-				"vups.name",
-				"vups.face",
-				"vups.first_listen_at",
-				"vups.room_id",
-				"vups.sign",
-				"COUNT(behaviours.uid) AS dd_count",
-				"MAX(behaviours.created_at) AS last_behaviour_at",
-				"MAX(last_listens.last_listen_at) AS last_listened_at",
-				"SUM(behaviours.price) AS total_spent",
-			}).
-			Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
-			Joins("left join last_listens on last_listens.uid = vups.uid").
-			Where("vups.name like ?", fmt.Sprintf("%%%s%%", name)).
-			Group("behaviours.uid, vups.uid").
-			Order(fmt.Sprintf("%s %s%s", orderBy, order, nullsLast)).
-			Offset((page - 1) * pageSize).
-			Limit(pageSize).
-			Find(&vups).Error
-	})
+	if err != nil {
+		return nil, err
+	}
 
-	stream.AddStmt(func() error {
-		return db.Database.
-			Model(&db.Vup{}).
-			Select("count(*)").
-			Where("name like ?", fmt.Sprintf("%%%s%%", name)).
-			Find(&totalSearchCount).Error
-	})
+	err = db.Database.
+		Model(&db.Vup{}).
+		Select("count(*)").
+		Where("name like ?", fmt.Sprintf("%%%s%%", name)).
+		Find(&totalSearchCount).Error
 
-	if err := stream.Run(); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
