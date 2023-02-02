@@ -8,85 +8,78 @@ import (
 	"gorm.io/gorm"
 )
 
-
 // GetStats get user stats
-// TODO: make concurrent
 func GetStats(uid int64, limit int) (*Analysis, error) {
 
 	var mostDDVups []AnalysisUserInfo
-
-	// D 最多
-	err := db.Database.
-		Model(&db.Behaviour{}).
-		Joins("left join vups on vups.uid = behaviours.target_uid").
-		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid", uid).
-		Select([]string{
-			"vups.name",
-			"vups.uid",
-			"vups.room_id",
-			"vups.face",
-			"vups.sign",
-			"COUNT(*) as count",
-			"SUM(behaviours.price) as price",
-		}).
-		Group("behaviours.target_uid, vups.uid").
-		Order("count desc").
-		Limit(limit).
-		Find(&mostDDVups).
-		Error
-
-	if err != nil {
-		return nil, err
-	}
-
 	var mostGuestVups []AnalysisUserInfo
-
-	// 被 D 最多
-	err = db.Database.
-		Model(&db.Behaviour{}).
-		Joins("left join vups on vups.uid = behaviours.uid").
-		Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid", uid).
-		Select([]string{
-			"vups.name",
-			"vups.uid",
-			"vups.room_id",
-			"vups.face",
-			"vups.sign",
-			"COUNT(*) as count",
-			"SUM(behaviours.price) as price",
-		}).
-		Group("behaviours.uid, vups.uid").
-		Limit(limit).
-		Order("count desc").
-		Find(&mostGuestVups).
-		Error
-
-	if err != nil {
-		return nil, err
-	}
-
 	var mostSpentVups []PricedUserInfo
 
-	// 花費最多
-	err = db.Database.
-		Model(&db.Behaviour{}).
-		Joins("left join vups on vups.uid = behaviours.target_uid").
-		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.price > 0", uid).
-		Select([]string{
-			"vups.name",
-			"vups.uid",
-			"vups.room_id",
-			"vups.face",
-			"vups.sign",
-			"SUM(behaviours.price) as spent",
-		}).
-		Group("behaviours.target_uid, vups.uid").
-		Order("spent desc").
-		Limit(limit).
-		Find(&mostSpentVups).
-		Error
+	stream := db.NewParallelStream()
 
-	if err != nil {
+	stream.AddStmt(func() error {
+		return db.Database.
+			Model(&db.Behaviour{}).
+			Joins("left join vups on vups.uid = behaviours.target_uid").
+			Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid", uid).
+			Select([]string{
+				"vups.name",
+				"vups.uid",
+				"vups.room_id",
+				"vups.face",
+				"vups.sign",
+				"COUNT(*) as count",
+				"SUM(behaviours.price) as price",
+			}).
+			Group("behaviours.target_uid, vups.uid").
+			Order("count desc").
+			Limit(limit).
+			Find(&mostDDVups).
+			Error
+	})
+
+	stream.AddStmt(func() error {
+		return db.Database.
+			Model(&db.Behaviour{}).
+			Joins("left join vups on vups.uid = behaviours.uid").
+			Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid", uid).
+			Select([]string{
+				"vups.name",
+				"vups.uid",
+				"vups.room_id",
+				"vups.face",
+				"vups.sign",
+				"COUNT(*) as count",
+				"SUM(behaviours.price) as price",
+			}).
+			Group("behaviours.uid, vups.uid").
+			Limit(limit).
+			Order("count desc").
+			Find(&mostGuestVups).
+			Error
+	})
+
+	stream.AddStmt(func() error {
+		return db.Database.
+			Model(&db.Behaviour{}).
+			Joins("left join vups on vups.uid = behaviours.target_uid").
+			Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.price > 0", uid).
+			Select([]string{
+				"vups.name",
+				"vups.uid",
+				"vups.room_id",
+				"vups.face",
+				"vups.sign",
+				"SUM(behaviours.price) as spent",
+			}).
+			Group("behaviours.target_uid, vups.uid").
+			Order("spent desc").
+			Limit(limit).
+			Find(&mostSpentVups).
+			Error
+	})
+
+	if err := stream.Run(); err != nil {
 		return nil, err
 	}
 
@@ -98,10 +91,10 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 }
 
 // GetStatsCommand get user stats by command
-// TODO: make concurrent
 func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysis, error) {
 
 	var mostDDVups []AnalysisUserInfo
+	var mostGuestVups []AnalysisUserInfo
 
 	r := db.Database.Model(&db.Behaviour{})
 
@@ -114,53 +107,52 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 
 	r = r.Session(&gorm.Session{})
 
-	// D 最多
-	err := r.
-		Joins("left join vups on vups.uid = behaviours.target_uid").
-		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
-		Select([]string{
-			"vups.name",
-			"vups.uid",
-			"vups.room_id",
-			"vups.face",
-			"vups.sign",
-			"COUNT(*) as count",
-			"SUM(behaviours.price) as price",
-		}).
-		Group("behaviours.target_uid, vups.uid").
-		Order(fmt.Sprintf("%s desc", orderBy)).
-		Limit(limit).
-		Find(&mostDDVups).
-		Error
+	stream := db.NewParallelStream()
 
-	if err != nil {
+	stream.AddStmt(func() error {
+		return r.
+			Joins("left join vups on vups.uid = behaviours.target_uid").
+			Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
+			Select([]string{
+				"vups.name",
+				"vups.uid",
+				"vups.room_id",
+				"vups.face",
+				"vups.sign",
+				"COUNT(*) as count",
+				"SUM(behaviours.price) as price",
+			}).
+			Group("behaviours.target_uid, vups.uid").
+			Order(fmt.Sprintf("%s desc", orderBy)).
+			Limit(limit).
+			Find(&mostDDVups).
+			Error
+	})
+
+	stream.AddStmt(func() error {
+		return r.
+			Joins("left join vups on vups.uid = behaviours.uid").
+			Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
+			Select([]string{
+				"vups.name",
+				"vups.uid",
+				"vups.room_id",
+				"vups.face",
+				"vups.sign",
+				"COUNT(*) as count",
+				"SUM(behaviours.price) as price",
+			}).
+			Group("behaviours.uid, vups.uid").
+			Limit(limit).
+			Order(fmt.Sprintf("%s desc", orderBy)).
+			Find(&mostGuestVups).
+			Error
+	})
+
+	if err := stream.Run(); err != nil {
 		return nil, err
 	}
 
-	var mostGuestVups []AnalysisUserInfo
-
-	// 被 D 最多
-	err = r.
-		Joins("left join vups on vups.uid = behaviours.uid").
-		Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
-		Select([]string{
-			"vups.name",
-			"vups.uid",
-			"vups.room_id",
-			"vups.face",
-			"vups.sign",
-			"COUNT(*) as count",
-			"SUM(behaviours.price) as price",
-		}).
-		Group("behaviours.uid, vups.uid").
-		Limit(limit).
-		Order(fmt.Sprintf("%s desc", orderBy)).
-		Find(&mostGuestVups).
-		Error
-
-	if err != nil {
-		return nil, err
-	}
 	return &Analysis{
 		TopDDVups:    mostDDVups,
 		TopGuestVups: mostGuestVups,

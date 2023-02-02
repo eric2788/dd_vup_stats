@@ -41,15 +41,15 @@ func GetStatsByType(top int, t string) (interface{}, error) {
 		return GetMostBehaviourVups(top)
 	case "spent":
 		return GetMostSpentPricedVups(top)
-	case "global":
-		return GetGlobalStatsConcurrent(top)
 	default:
 		return GetGlobalStats(top)
 	}
 }
 
-// GetGlobalStatsConcurrent returns global stats concurrently
-func GetGlobalStatsConcurrent(top int) (*Globalstats, error) {
+// GetGlobalStats get global stats with all information
+//
+// Deprecated: high performance cost and slow response, recommend use GetStatsByType instead
+func GetGlobalStats(top int) (*Globalstats, error) {
 	var listeningCount int64
 	var recordCount int64
 	var behaviourCount int64
@@ -94,57 +94,6 @@ func GetGlobalStatsConcurrent(top int) (*Globalstats, error) {
 
 	err := stream.Run()
 	if err != nil {
-		return nil, err
-	}
-
-	return &Globalstats{
-		TotalVupRecorded:      recordCount,
-		CurrentListeningCount: listeningCount,
-		MostDDBehaviourVups:   mostDDBehaviourVups,
-		MostDDVups:            mostDDVups,
-		MostSpentVups:         mostSpentVups,
-		TotalDDBehaviours:     behaviourCount,
-	}, nil
-}
-
-// GetGlobalStats get global stats with all information
-//
-// Deprecated: high performance cost and slow response, recommend use GetStatsByType instead
-func GetGlobalStats(top int) (*Globalstats, error) {
-	s, err := stats.GetListening()
-	if err != nil {
-		return nil, err
-	}
-
-	listeningCount := s.TotalListeningCount
-
-	recordCount, err := GetTotalVupCount()
-	if err != nil {
-		logger.Errorf("獲取總vup人數出現錯誤: %v", err)
-		return nil, err
-	}
-
-	behaviourCount, err := GetTotalBehaviourCount()
-	if err != nil {
-		logger.Errorf("獲取總dd行為數時出現錯誤: %v", err)
-		return nil, err
-	}
-
-	mostDDBehaviourVups, err := GetMostBehaviourVups(top)
-	if err != nil {
-		logger.Errorf("獲取dd行為最多的vup時出現錯誤: %v", err)
-		return nil, err
-	}
-
-	mostDDVups, err := GetMostDDVups(top)
-	if err != nil {
-		logger.Errorf("獲取dd最多的vup時出現錯誤: %v", err)
-		return nil, err
-	}
-
-	mostSpentVups, err := GetMostSpentPricedVups(top)
-	if err != nil {
-		logger.Errorf("獲取花費最多的vup時出現錯誤: %v", err)
 		return nil, err
 	}
 

@@ -165,9 +165,7 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 	return lastListenAt
 }
 
-
 // SearchVups search vups by name
-// TODO: make concurrent
 func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*stats.ListResp[UserResp], error) {
 
 	// ensure page is valid
@@ -175,8 +173,6 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*st
 
 	//ensure pageSize is valid
 	pageSize = int(math.Max(1, float64(pageSize)))
-
-	var vups []UserInfo
 
 	order := "desc"
 
@@ -195,42 +191,45 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*st
 
 	// ==============
 
-	err := db.Database.
-		Model(&db.Vup{}).
-		Select([]string{
-			"vups.uid",
-			"vups.name",
-			"vups.face",
-			"vups.first_listen_at",
-			"vups.room_id",
-			"vups.sign",
-			"COUNT(behaviours.uid) AS dd_count",
-			"MAX(behaviours.created_at) AS last_behaviour_at",
-			"MAX(last_listens.last_listen_at) AS last_listened_at",
-			"SUM(behaviours.price) AS total_spent",
-		}).
-		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
-		Joins("left join last_listens on last_listens.uid = vups.uid").
-		Where("vups.name like ?", fmt.Sprintf("%%%s%%", name)).
-		Group("behaviours.uid, vups.uid").
-		Order(fmt.Sprintf("%s %s%s", orderBy, order, nullsLast)).
-		Offset((page - 1) * pageSize).
-		Limit(pageSize).
-		Find(&vups).Error
-
-	if err != nil {
-		return nil, err
-	}
-
+	var vups []UserInfo
 	var totalSearchCount int64
 
-	err = db.Database.
-		Model(&db.Vup{}).
-		Select("count(*)").
-		Where("name like ?", fmt.Sprintf("%%%s%%", name)).
-		Find(&totalSearchCount).Error
+	stream := db.NewParallelStream()
 
-	if err != nil {
+	stream.AddStmt(func() error {
+		return db.Database.
+			Model(&db.Vup{}).
+			Select([]string{
+				"vups.uid",
+				"vups.name",
+				"vups.face",
+				"vups.first_listen_at",
+				"vups.room_id",
+				"vups.sign",
+				"COUNT(behaviours.uid) AS dd_count",
+				"MAX(behaviours.created_at) AS last_behaviour_at",
+				"MAX(last_listens.last_listen_at) AS last_listened_at",
+				"SUM(behaviours.price) AS total_spent",
+			}).
+			Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
+			Joins("left join last_listens on last_listens.uid = vups.uid").
+			Where("vups.name like ?", fmt.Sprintf("%%%s%%", name)).
+			Group("behaviours.uid, vups.uid").
+			Order(fmt.Sprintf("%s %s%s", orderBy, order, nullsLast)).
+			Offset((page - 1) * pageSize).
+			Limit(pageSize).
+			Find(&vups).Error
+	})
+
+	stream.AddStmt(func() error {
+		return db.Database.
+			Model(&db.Vup{}).
+			Select("count(*)").
+			Where("name like ?", fmt.Sprintf("%%%s%%", name)).
+			Find(&totalSearchCount).Error
+	})
+
+	if err := stream.Run(); err != nil {
 		return nil, err
 	}
 
