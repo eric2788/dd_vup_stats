@@ -77,7 +77,7 @@ func GetGlobalStats(c *gin.Context) {
 		top = 3
 	}
 
-	statsType := c.DefaultQuery("type", "")	
+	statsType := c.DefaultQuery("type", "")
 	resp, err := vup.GetStatsByType(top, statsType)
 
 	if err != nil {
@@ -180,7 +180,14 @@ func GetUserStats(c *gin.Context) {
 		limit = 1
 	}
 
-	resp, err := vup.GetStats(userId, limit)
+	concurrent := c.DefaultQuery("concurrent", "false") != "false"
+
+	var getStats = vup.GetStats
+	if concurrent {
+		getStats = vup.GetStatsConcurrent
+	}
+
+	resp, err := getStats(userId, limit)
 
 	if err != nil {
 		logger.Warn(err)
