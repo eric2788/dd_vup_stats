@@ -51,16 +51,16 @@ func main() {
 
 	router := gin.New()
 
-	if os.Getenv("SKIP_RECORDS_LOG") == "true" {
-		router.Use(func(c *gin.Context) {
+	router.Use(func(c *gin.Context) {
+		if os.Getenv("SKIP_RECORDS_LOG") == "true" {
 			// for /records/:uid only
 			if strings.HasPrefix(c.Request.URL.Path, "/records/") {
 				c.Next()
 				return
 			}
-			gin.Logger()(c)
-		})
-	}
+		}
+		gin.Logger()(c)
+	})
 
 	router.Use(CORS())
 	router.Use(ErrorHandler)
