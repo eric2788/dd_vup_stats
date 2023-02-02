@@ -22,10 +22,10 @@ type (
 
 	Behaviour struct {
 		ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
-		Uid       int64          `json:"uid"`
+		Uid       int64          `json:"uid" gorm:"index"`
 		CreatedAt time.Time      `json:"created_at"`
 		TargetUid int64          `json:"target_uid"`
-		Command   string         `json:"command"`
+		Command   string         `json:"command" gorm:"index"`
 		Display   string         `json:"display"`
 		Image     sql.NullString `json:"image"`
 		Price     float64        `json:"price" gorm:"default:0"`
@@ -56,11 +56,11 @@ type (
 
 	WatcherBehaviour struct {
 		ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
-		Uid       int64          `json:"uid"`
+		Uid       int64          `json:"uid" gorm:"index"`
 		UName     string         `json:"u_name"`
 		CreatedAt time.Time      `json:"created_at"`
 		TargetUid int64          `json:"target_uid"`
-		Command   string         `json:"command"`
+		Command   string         `json:"command" gorm:"index"`
 		Display   string         `json:"display"`
 		Image     sql.NullString `json:"image"`
 		Price     float64        `json:"price" gorm:"default:0"`
