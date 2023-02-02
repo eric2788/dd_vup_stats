@@ -8,6 +8,7 @@ import (
 	"vup_dd_stats/controller/records"
 	"vup_dd_stats/controller/stats"
 	"vup_dd_stats/controller/user"
+	"vup_dd_stats/controller/watcher"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	statistics "vup_dd_stats/service/stats"
@@ -68,6 +69,7 @@ func main() {
 	user.Register(router.Group("/user"))
 	stats.Register(router.Group("/stats"))
 	records.Register(router.Group("/records"))
+	watcher.Register(router.Group("/watcher"))
 
 	if err := router.Run(":8086"); err != nil {
 		logrus.Errorf("Error while starting server: %v", err)
