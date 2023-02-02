@@ -180,14 +180,7 @@ func GetUserStats(c *gin.Context) {
 		limit = 1
 	}
 
-	concurrent := c.DefaultQuery("concurrent", "false") != "false"
-
-	var getStats = vup.GetStats
-	if concurrent {
-		getStats = vup.GetStatsConcurrent
-	}
-
-	resp, err := getStats(userId, limit)
+	resp, err := vup.GetStats(userId, limit)
 
 	if err != nil {
 		logger.Warn(err)

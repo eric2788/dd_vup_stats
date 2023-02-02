@@ -41,9 +41,69 @@ func GetStatsByType(top int, t string) (interface{}, error) {
 		return GetMostBehaviourVups(top)
 	case "spent":
 		return GetMostSpentPricedVups(top)
+	case "global":
+		return GetGlobalStatsConcurrent(top)
 	default:
 		return GetGlobalStats(top)
 	}
+}
+
+func GetGlobalStatsConcurrent(top int) (*Globalstats, error) {
+	var listeningCount int64
+	var recordCount int64
+	var behaviourCount int64
+	var mostDDBehaviourVups []AnalysisUserInfo
+	var mostSpentVups []PricedUserInfo
+	var mostDDVups []AnalysisUserInfo
+
+	stream := db.NewParallelStream()
+	stream.AddStmt(func() error {
+		s, err := stats.GetListening()
+		if err != nil {
+			return err
+		}
+		listeningCount = s.TotalListeningCount
+		return nil
+	})
+
+	stream.AddStmt(func() (err error) {
+		recordCount, err = GetTotalVupCount()
+		return err
+	})
+
+	stream.AddStmt(func() (err error) {
+		behaviourCount, err = GetTotalBehaviourCount()
+		return
+	})
+
+	stream.AddStmt(func() (err error) {
+		mostDDBehaviourVups, err = GetMostBehaviourVups(top)
+		return
+	})
+
+	stream.AddStmt(func() (err error) {
+		mostDDVups, err = GetMostDDVups(top)
+		return
+	})
+
+	stream.AddStmt(func() (err error) {
+		mostSpentVups, err = GetMostSpentPricedVups(top)
+		return
+	})
+
+	err := stream.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Globalstats{
+		TotalVupRecorded:      recordCount,
+		CurrentListeningCount: listeningCount,
+		MostDDBehaviourVups:   mostDDBehaviourVups,
+		MostDDVups:            mostDDVups,
+		MostSpentVups:         mostSpentVups,
+		TotalDDBehaviours:     behaviourCount,
+	}, nil
 }
 
 // GetGlobalStats get global stats with all information
