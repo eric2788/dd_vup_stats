@@ -7,7 +7,7 @@ import (
 
 type (
 	Vup struct {
-		Uid               int64 `gorm:"primaryKey;autoIncrement:false"`
+		Uid               int64 `gorm:"index;primaryKey;autoIncrement:false"`
 		Name              string
 		Face              string
 		FirstListenAt     time.Time
@@ -24,7 +24,7 @@ type (
 		ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
 		Uid       int64          `json:"uid" gorm:"index"`
 		CreatedAt time.Time      `json:"created_at"`
-		TargetUid int64          `json:"target_uid"`
+		TargetUid int64          `json:"target_uid" gorm:"index"`
 		Command   string         `json:"command" gorm:"index"`
 		Display   string         `json:"display"`
 		Image     sql.NullString `json:"image"`
@@ -59,7 +59,7 @@ type (
 		Uid       int64          `json:"uid" gorm:"index"`
 		UName     string         `json:"u_name"`
 		CreatedAt time.Time      `json:"created_at"`
-		TargetUid int64          `json:"target_uid"`
+		TargetUid int64          `json:"target_uid" gorm:"index"`
 		Command   string         `json:"command" gorm:"index"`
 		Display   string         `json:"display"`
 		Image     sql.NullString `json:"image"`
