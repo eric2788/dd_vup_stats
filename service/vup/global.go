@@ -48,6 +48,7 @@ func GetStatsByType(top int, t string) (interface{}, error) {
 	}
 }
 
+// GetGlobalStatsConcurrent returns global stats concurrently
 func GetGlobalStatsConcurrent(top int) (*Globalstats, error) {
 	var listeningCount int64
 	var recordCount int64

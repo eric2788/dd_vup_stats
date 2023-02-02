@@ -8,6 +8,9 @@ import (
 	"gorm.io/gorm"
 )
 
+
+// GetStats get user stats
+// TODO: make concurrent
 func GetStats(uid int64, limit int) (*Analysis, error) {
 
 	var mostDDVups []AnalysisUserInfo
@@ -94,6 +97,8 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 	}, nil
 }
 
+// GetStatsCommand get user stats by command
+// TODO: make concurrent
 func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysis, error) {
 
 	var mostDDVups []AnalysisUserInfo
@@ -164,7 +169,7 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 
 // GetTotalBehaviourCount get total behaviour count by command
 //
-// Deprecated: use GetCommandStats instead
+// Deprecated: use GetTotalCommandStats instead
 func GetTotalStatusByCommand(uid int64, command string) stats.TotalStats {
 
 	var totalStatus stats.TotalStats

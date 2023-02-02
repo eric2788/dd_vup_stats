@@ -6,7 +6,6 @@ import (
 	"math"
 	"time"
 	"vup_dd_stats/service/analysis"
-	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/stats"
 
@@ -98,10 +97,14 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 		vup.LastListenedAt = lastListenAt
 	}
 
-	registeredCommands := blive.GetRegisteredCommands()
-	behaviourCounts := make(map[string]stats.TotalStats, len(registeredCommands))
-	for _, command := range registeredCommands {
-		behaviourCounts[command] = GetTotalStatusByCommand(uid, command)
+	behaviourCounts := make(map[string]stats.TotalStats)
+	stats, err := GetTotalCommandStats(uid)
+	if err != nil {
+		logger.Errorf("嘗試獲取用戶 %v 的行为统计時出現錯誤: %v", uid, err)
+	} else {
+		for _, stat := range stats {
+			behaviourCounts[stat.Command] = stat
+		}
 	}
 
 	// annoymous record
@@ -162,6 +165,9 @@ func GetLastListen(vup *UserInfo, listening bool) time.Time {
 	return lastListenAt
 }
 
+
+// SearchVups search vups by name
+// TODO: make concurrent
 func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*stats.ListResp[UserResp], error) {
 
 	// ensure page is valid
@@ -258,4 +264,3 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*st
 		List:    userResps,
 	}, nil
 }
-
