@@ -5,6 +5,7 @@ import (
 	"testing"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/stats"
+	"vup_dd_stats/utils/set"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -64,7 +65,7 @@ func ainit() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	stats.Listening = &info.Rooms
+	stats.Listening = set.FromArray(info.Rooms)
 	db.InitDB()
 	db.InitRedis()
 }

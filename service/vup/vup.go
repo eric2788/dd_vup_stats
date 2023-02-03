@@ -11,7 +11,6 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/exp/slices"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -60,8 +59,6 @@ func GetTotalVupCount() (int64, error) {
 
 func GetVup(uid int64) (*UserDetailResp, error) {
 
-	listeningRooms := *(stats.Listening)
-
 	var vup UserInfo
 	err := db.Database.
 		Model(&db.Vup{}).
@@ -90,11 +87,16 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 		return nil, err
 	}
 
-	listening := slices.Contains(listeningRooms, vup.RoomId)
-	lastListenAt := GetLastListen(&vup, listening)
+	listening := stats.Listening.Has(vup.RoomId)
 
-	if !listening {
-		vup.LastListenedAt = lastListenAt
+	if !listening && vup.LastListenedAt.IsZero() {
+		vup.LastListenedAt = time.Now().UTC()
+	}
+
+	if listening {
+		go UpdateLastListens([]int64{uid}, []int64{})
+	} else {
+		go UpdateLastListens([]int64{}, []int64{uid})
 	}
 
 	behaviourCounts := make(map[string]stats.TotalStats)
@@ -119,50 +121,47 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 	}, nil
 }
 
-func GetLastListen(vup *UserInfo, listening bool) time.Time {
+func UpdateLastListens(listening, unListening []int64) {
 
-	lastListenAt := time.Now().UTC()
-
-	if !listening {
-
-		var lastListen = &db.LastListen{
-			Uid:          vup.Uid,
-			LastListenAt: lastListenAt,
-		}
-
-		// FirstOrCreate will throw duplicate entry error if the record already exists
-		err := db.Database.Take(lastListen, vup.Uid).Error
-
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			logrus.Debugf("Record of %v not found, create new one", vup.Name)
-			err = db.Database.Create(lastListen).Error
-		}
-
-		if err != nil {
-			logger.Errorf("嘗試插入最後監聽訊息時出現錯誤: %v", err)
-			logrus.Debugf("Record Insert Error, using first listen at")
-			return vup.FirstListenAt
-		} else {
-			return lastListen.LastListenAt
-		}
-
-	} else {
-
+	if len(listening) > 0 {
 		re := db.Database.
 			Clauses(clause.OnConflict{DoNothing: true}).
-			Delete(&db.LastListen{}, vup.Uid)
+			Where("uid IN ?", listening).
+			Delete(&db.LastListen{})
 
 		if re.Error != nil {
 			logger.Errorf("嘗試刪除最後監聽訊息時出現錯誤: %v", re.Error)
 		}
 
 		if re.RowsAffected > 0 {
-			logrus.Debugf("Successfully Delete %v record of %v because it is listening.", re.RowsAffected, vup.Name)
+			logrus.Debugf("Successfully Delete %v record of %v because it is listening.", re.RowsAffected, listening)
 		}
 
 	}
 
-	return lastListenAt
+	if len(unListening) > 0 {
+
+		insert := make([]db.LastListen, len(unListening))
+		for i, uid := range unListening {
+			insert[i] = db.LastListen{
+				Uid:          uid,
+				LastListenAt: time.Now().UTC(),
+			}
+		}
+
+		re := db.Database.
+			Clauses(clause.OnConflict{DoNothing: true}).
+			CreateInBatches(insert, len(unListening))
+
+		if re.Error != nil {
+			logger.Errorf("嘗試更新最後監聽訊息時出現錯誤: %v", re.Error)
+		}
+
+		if re.RowsAffected > 0 {
+			logrus.Debugf("Successfully Update %v record of %v because it is unListening.", re.RowsAffected, unListening)
+		}
+	}
+
 }
 
 // SearchVups search vups by name
@@ -235,22 +234,32 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*st
 
 	var userResps []UserResp
 
-	for _, vup := range vups {
+	var listening []int64
+	var unListening []int64
 
-		listeningRooms := *(stats.Listening)
+	for _, vup := range vups {
 
 		var userResp UserResp
 
 		userResp.UserInfo = vup
+		userResp.Listening = stats.Listening.Has(vup.RoomId)
 
-		listening := slices.Contains(listeningRooms, vup.RoomId)
-		lastListenAt := GetLastListen(&vup, listening)
+		// if listening: last_listened_at = now
+		// if not listening and not find from last_listens table: use now as last_listened_at
+		if userResp.Listening || userResp.LastListenedAt.IsZero() {
+			userResp.LastListenedAt = time.Now().UTC()
+		}
 
-		userResp.Listening = listening
-		userResp.LastListenedAt = lastListenAt
+		if userResp.Listening {
+			listening = append(listening, vup.Uid)
+		} else {
+			unListening = append(unListening, vup.Uid)
+		}
 
 		userResps = append(userResps, userResp)
 	}
+
+	go UpdateLastListens(listening, unListening)
 
 	// annoymous record
 	go analysis.RecordSearchText(name, totalSearchCount)

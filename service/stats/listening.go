@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	logger                = logrus.WithField("service", "statistics")
-	Listening    *[]int64 = &[]int64{}
-	cooldownList          = set.New[int64]()
-	allowRoles            = set.FromArray([]int{1, 2, 3})
+	logger       = logrus.WithField("service", "statistics")
+	Listening    = set.New[int64]()
+	cooldownList = set.New[int64]()
+	allowRoles   = set.FromArray([]int{1, 2, 3})
 )
 
 func StartListenStats(ctx context.Context) {
@@ -143,7 +143,7 @@ func fetchListeningInfo() {
 
 	var roomIds []int64
 
-	Listening = &stats.Rooms
+	Listening = set.FromArray(stats.Rooms)
 
 	result := db.Database.
 		Model(&db.Vup{}).

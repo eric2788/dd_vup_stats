@@ -1,10 +1,12 @@
 package stats
 
 import (
-	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 	"testing"
 	"vup_dd_stats/service/db"
+	"vup_dd_stats/utils/set"
+
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 func aTestFetchVupToRedis(t *testing.T) {
@@ -28,7 +30,7 @@ func ainit() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	Listening = &info.Rooms
+	Listening = set.FromArray(info.Rooms)
 	db.InitDB()
 	db.InitRedis()
 }
