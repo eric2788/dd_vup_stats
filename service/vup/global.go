@@ -41,6 +41,10 @@ func GetStatsByType(top int, t string) (interface{}, error) {
 		return GetMostBehaviourVups(top)
 	case "spent":
 		return GetMostSpentPricedVups(top)
+	case "famous":
+		return GetMostFamousVups(top)
+	case "interacted":
+		return GetMostInteractedVups(top)
 	default:
 		return GetGlobalStats(top)
 	}
@@ -130,6 +134,52 @@ func GetMostDDVups(limit int) ([]AnalysisUserInfo, error) {
 		Error
 
 	return mostDDVups, err
+}
+
+// GetMostFamousVups 获取最受欢迎的vups (被最多的vup访问过)
+func GetMostFamousVups(limit int) ([]AnalysisUserInfo, error) {
+	var mostFamousVups []AnalysisUserInfo
+	err := db.Database.
+		Model(&db.Behaviour{}).
+		Select([]string{
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
+			"COUNT(DISTINCT behaviours.uid) as count",
+		}).
+		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Where("behaviours.target_uid != behaviours.uid").
+		Group("behaviours.target_uid, vups.uid").
+		Order("count desc").
+		Limit(limit).
+		Find(&mostFamousVups).
+		Error
+	return mostFamousVups, err
+}
+
+// GetMostInteractedVups 获取经常被互动的vups (被互动次数最多)
+func GetMostInteractedVups(limit int) ([]AnalysisUserInfo, error) {
+	var mostInteractedVups []AnalysisUserInfo
+	err := db.Database.
+		Model(&db.Behaviour{}).
+		Select([]string{
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
+			"COUNT(*) as count",
+		}).
+		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Where("behaviours.target_uid != behaviours.uid").
+		Group("behaviours.target_uid, vups.uid").
+		Order("count desc").
+		Limit(limit).
+		Find(&mostInteractedVups).
+		Error
+	return mostInteractedVups, err
 }
 
 func GetMostBehaviourVups(limit int) ([]AnalysisUserInfo, error) {

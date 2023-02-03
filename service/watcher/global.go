@@ -15,9 +15,53 @@ func GetStatsByType(top int, t string) (interface{}, error) {
 		return GetMostBehaviourWatchers(top)
 	case "spent":
 		return GetMostSpentWatchers(top)
+	case "famous":
+		return GetMostFamousVups(top)
+	case "interacted":
+		return GetMostInteractedVups(top)
 	default:
 		return nil, fmt.Errorf("unknown type: %s", t)
 	}
+}
+
+// GetMostDDVups 獲取最受普通B站用户欢迎的vups (最多人访问的vup)
+func GetMostFamousVups(limit int) ([]AnalysisVupInfo, error) {
+	var mostFamousVups []AnalysisVupInfo
+	err := db.Database.
+		Model(&db.WatcherBehaviour{}).
+		Select([]string{
+			"vups.uid",
+			"vups.name",
+			"vups.face",
+			"COUNT(DISTINCT watcher_behaviours.uid) as count",
+		}).
+		Joins("left join vups on vups.uid = watcher_behaviours.target_uid").
+		Group("watcher_behaviours.target_uid, vups.uid").
+		Order("count desc").
+		Limit(limit).
+		Find(&mostFamousVups).
+		Error
+	return mostFamousVups, err
+}
+
+// GetMostInteractedVups 获取经常被普通B站用户互动的vups (被普通B站用户互动次数最多)
+func GetMostInteractedVups(limit int) ([]AnalysisVupInfo, error) {
+	var mostInteractedVups []AnalysisVupInfo
+	err := db.Database.
+		Model(&db.WatcherBehaviour{}).
+		Select([]string{
+			"vups.uid",
+			"vups.name",
+			"vups.face",
+			"COUNT(watcher_behaviours.uid) as count",
+		}).
+		Joins("left join vups on vups.uid = watcher_behaviours.target_uid").
+		Group("watcher_behaviours.target_uid, vups.uid").
+		Order("count desc").
+		Limit(limit).
+		Find(&mostInteractedVups).
+		Error
+	return mostInteractedVups, err
 }
 
 // GetMostDDWatchers 獲取進入最多不同直播間的 dd
