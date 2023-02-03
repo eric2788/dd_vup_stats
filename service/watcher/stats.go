@@ -71,60 +71,6 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) ([]Analys
 	return mostDDVups, nil
 }
 
-// GetStatsConcurrent test only, to test the speed compare to GetStats
-func GetStatsConcurrent(uid int64, limit int) (*Analysis, error) {
-	var mostDDVups []AnalysisVupInfo
-	var mostSpentVups []PricedVupInfo
-
-	stream := db.NewParallelStream()
-
-	stream.AddStmt(func() error {
-		return db.Database.
-			Model(&db.WatcherBehaviour{}).
-			Joins("left join vups on vups.uid = watcher_behaviours.target_uid").
-			Where("watcher_behaviours.uid = ?", uid).
-			Select([]string{
-				"vups.name",
-				"vups.uid",
-				"vups.face",
-				"COUNT(*) as count",
-				"SUM(watcher_behaviours.price) as price",
-			}).
-			Group("watcher_behaviours.target_uid, vups.uid").
-			Order("count desc").
-			Limit(limit).
-			Find(&mostDDVups).
-			Error
-	})
-
-	stream.AddStmt(func() error {
-		return db.Database.
-			Model(&db.WatcherBehaviour{}).
-			Joins("left join vups on vups.uid = watcher_behaviours.target_uid").
-			Where("watcher_behaviours.uid = ? and watcher_behaviours.price > 0", uid).
-			Select([]string{
-				"vups.name",
-				"vups.uid",
-				"vups.face",
-				"SUM(watcher_behaviours.price) as spent",
-			}).
-			Group("watcher_behaviours.target_uid, vups.uid").
-			Order("spent desc").
-			Limit(limit).
-			Find(&mostSpentVups).
-			Error
-	})
-
-	if err := stream.Run(); err != nil {
-		return nil, err
-	}
-
-	return &Analysis{
-		TopDDVups:    mostDDVups,
-		TopSpentVups: mostSpentVups,
-	}, nil
-}
-
 func GetStats(uid int64, limit int) (*Analysis, error) {
 
 	var mostDDVups []AnalysisVupInfo

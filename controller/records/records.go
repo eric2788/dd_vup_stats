@@ -1,11 +1,12 @@
 package records
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"strconv"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/vup"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type RecordGetter func(uid int64, limit int) ([]db.Behaviour, error)
@@ -48,6 +49,13 @@ func GetGlobalRecords(c *gin.Context) {
 			"message": "page must be a number",
 		})
 		return
+	}
+	
+	// 每頁最高拿到50筆
+	if pageSize > 50 {
+		pageSize = 50
+	} else if pageSize <= 0 {
+		pageSize = 0
 	}
 
 	showSelf := c.DefaultQuery("showSelf", "true") == "true"
