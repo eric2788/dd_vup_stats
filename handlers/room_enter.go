@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"fmt"
-	"gorm.io/gorm"
 	"time"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/vup"
+
+	"gorm.io/gorm"
 )
 
 func roomEnter(data *blive.LiveData) error {

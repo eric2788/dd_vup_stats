@@ -219,9 +219,9 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*st
 			"MAX(last_listens.last_listen_at) AS last_listened_at",
 			"SUM(behaviours.price) AS total_spent",
 		}).
-		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
+		Joins("left join behaviours on behaviours.uid = vups.uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
-		Where("vups.name like ?", fmt.Sprintf("%%%s%%", name)).
+		Where("vups.name like ? and behaviours.uid != behaviours.target_uid", fmt.Sprintf("%%%s%%", name)).
 		Group("behaviours.uid, vups.uid").
 		Order(fmt.Sprintf("%s %s%s", orderBy, order, nullsLast)).
 		Offset((page - 1) * pageSize).
