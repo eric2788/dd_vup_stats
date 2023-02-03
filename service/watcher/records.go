@@ -24,9 +24,7 @@ func GetRecords(uid int64, page, pageSize int, cmd string) (*stats.ListResp[db.W
 		r = r.Where("command = ?", cmd)
 	}
 
-	r = r.Session(&gorm.Session{
-		SkipDefaultTransaction: true,	
-	})
+	r = r.Session(&gorm.Session{})
 
 	err := r.
 		Order("created_at desc").

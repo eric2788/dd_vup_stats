@@ -7,7 +7,7 @@ import (
 
 type (
 	Vup struct {
-		Uid               int64 `gorm:"index;primaryKey;autoIncrement:false"`
+		Uid               int64 `gorm:"primaryKey;autoIncrement:false"`
 		Name              string
 		Face              string
 		FirstListenAt     time.Time
@@ -56,9 +56,9 @@ type (
 
 	WatcherBehaviour struct {
 		ID        uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-		Uid       int64          `json:"uid" gorm:"index"`
+		Uid       int64          `json:"uid" gorm:"index;index:idx_uid_created_at"`
 		UName     string         `json:"u_name"`
-		CreatedAt time.Time      `json:"created_at" gorm:"index"`
+		CreatedAt time.Time      `json:"created_at" gorm:"index;index:idx_uid_created_at"`
 		TargetUid int64          `json:"target_uid" gorm:"index"`
 		Command   string         `json:"command" gorm:"index"`
 		Display   string         `json:"display"`
