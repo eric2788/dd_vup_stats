@@ -254,9 +254,8 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*st
 		userResp.UserInfo = vup
 		userResp.Listening = stats.Listening.Has(vup.RoomId)
 
-		// if listening: last_listened_at = now
 		// if not listening and not find from last_listens table: use now as last_listened_at
-		if userResp.Listening || userResp.LastListenedAt.IsZero() {
+		if !userResp.Listening && userResp.LastListenedAt.IsZero() {
 			userResp.LastListenedAt = time.Now().UTC()
 		}
 
