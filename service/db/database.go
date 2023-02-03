@@ -41,8 +41,8 @@ func InitDB() {
 	}
 
 	db, err := gorm.Open(getDataSource(), &gorm.Config{
-		Logger:      logger.Default.LogMode(logLevel),
-		PrepareStmt: true,
+		Logger:                 logger.Default.LogMode(logLevel),
+		PrepareStmt:            true,
 		SkipDefaultTransaction: true,
 	})
 
@@ -54,8 +54,8 @@ func InitDB() {
 	if err == nil {
 		pool.SetMaxIdleConns(10)
 		pool.SetMaxOpenConns(100)
-		pool.SetConnMaxLifetime(time.Hour)
-		pool.SetConnMaxIdleTime(time.Minute * 15)
+		pool.SetConnMaxLifetime(time.Minute * 5)
+		pool.SetConnMaxIdleTime(time.Minute)
 	} else {
 		log.Warnf("設定資料庫連接池時出現錯誤: %v", err)
 	}
