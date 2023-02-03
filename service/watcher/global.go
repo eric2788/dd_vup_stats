@@ -3,6 +3,8 @@ package watcher
 import (
 	"fmt"
 	"vup_dd_stats/service/db"
+
+	"gorm.io/gorm"
 )
 
 func GetStatsByType(top int, t string) (interface{}, error) {
@@ -28,6 +30,9 @@ func GetStatsByType(top int, t string) (interface{}, error) {
 func GetMostFamousVups(limit int) ([]AnalysisVupInfo, error) {
 	var mostFamousVups []AnalysisVupInfo
 	err := db.Database.
+		Session(&gorm.Session{
+			SkipDefaultTransaction: true,
+		}).
 		Model(&db.WatcherBehaviour{}).
 		Select([]string{
 			"vups.uid",
@@ -48,6 +53,9 @@ func GetMostFamousVups(limit int) ([]AnalysisVupInfo, error) {
 func GetMostInteractedVups(limit int) ([]AnalysisVupInfo, error) {
 	var mostInteractedVups []AnalysisVupInfo
 	err := db.Database.
+		Session(&gorm.Session{
+			SkipDefaultTransaction: true,
+		}).
 		Model(&db.WatcherBehaviour{}).
 		Select([]string{
 			"vups.uid",
@@ -75,6 +83,9 @@ func GetMostDDWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 	}
 
 	err := db.Database.
+		Session(&gorm.Session{
+			SkipDefaultTransaction: true,
+		}).
 		Model(&db.WatcherBehaviour{}).
 		Select([]string{
 			"uid",
@@ -93,6 +104,9 @@ func GetMostDDWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 func GetTotalCount() (int64, error) {
 	var count int64
 	err := db.Database.
+		Session(&gorm.Session{
+			SkipDefaultTransaction: true,
+		}).
 		Model(&db.WatcherBehaviour{}).
 		Count(&count).
 		Error
@@ -110,6 +124,9 @@ func GetMostBehaviourWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 	}
 
 	err := db.Database.
+		Session(&gorm.Session{
+			SkipDefaultTransaction: true,
+		}).
 		Model(&db.WatcherBehaviour{}).
 		Select([]string{
 			"uid",
@@ -136,6 +153,9 @@ func GetMostSpentWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 	}
 
 	err := db.Database.
+		Session(&gorm.Session{
+			SkipDefaultTransaction: true,
+		}).
 		Model(&db.WatcherBehaviour{}).
 		Select([]string{
 			"uid",
@@ -166,7 +186,10 @@ func GetMostBehaviourWatchersByCommand(limit int, command string, price bool) ([
 	}
 
 	err := db.Database.
-		Model(&db.Behaviour{}).
+		Session(&gorm.Session{
+			SkipDefaultTransaction: true,
+		}).
+		Model(&db.WatcherBehaviour{}).
 		Select([]string{
 			"uid",
 			u_name,
