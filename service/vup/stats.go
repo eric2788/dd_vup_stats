@@ -15,71 +15,71 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 	var mostGuestVups []AnalysisUserInfo
 	var mostSpentVups []PricedUserInfo
 
-	stream := db.NewParallelStream()
+	err := db.Database.
+		Model(&db.Behaviour{}).
+		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid", uid).
+		Select([]string{
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
+			"COUNT(*) as count",
+			"SUM(behaviours.price) as price",
+		}).
+		Group("behaviours.target_uid, vups.uid").
+		Order("count desc").
+		Limit(limit).
+		Find(&mostDDVups).
+		Error
 
-	stream.AddStmt(func() error {
-		return db.Database.
-			Model(&db.Behaviour{}).
-			Joins("left join vups on vups.uid = behaviours.target_uid").
-			Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid", uid).
-			Select([]string{
-				"vups.name",
-				"vups.uid",
-				"vups.room_id",
-				"vups.face",
-				"vups.sign",
-				"COUNT(*) as count",
-				"SUM(behaviours.price) as price",
-			}).
-			Group("behaviours.target_uid, vups.uid").
-			Order("count desc").
-			Limit(limit).
-			Find(&mostDDVups).
-			Error
-	})
+	if err != nil {
+		return nil, err
+	}
 
-	stream.AddStmt(func() error {
-		return db.Database.
-			Model(&db.Behaviour{}).
-			Joins("left join vups on vups.uid = behaviours.uid").
-			Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid", uid).
-			Select([]string{
-				"vups.name",
-				"vups.uid",
-				"vups.room_id",
-				"vups.face",
-				"vups.sign",
-				"COUNT(*) as count",
-				"SUM(behaviours.price) as price",
-			}).
-			Group("behaviours.uid, vups.uid").
-			Limit(limit).
-			Order("count desc").
-			Find(&mostGuestVups).
-			Error
-	})
+	err = db.Database.
+		Model(&db.Behaviour{}).
+		Joins("left join vups on vups.uid = behaviours.uid").
+		Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid", uid).
+		Select([]string{
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
+			"COUNT(*) as count",
+			"SUM(behaviours.price) as price",
+		}).
+		Group("behaviours.uid, vups.uid").
+		Limit(limit).
+		Order("count desc").
+		Find(&mostGuestVups).
+		Error
 
-	stream.AddStmt(func() error {
-		return db.Database.
-			Model(&db.Behaviour{}).
-			Joins("left join vups on vups.uid = behaviours.target_uid").
-			Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.price > 0", uid).
-			Select([]string{
-				"vups.name",
-				"vups.uid",
-				"vups.room_id",
-				"vups.face",
-				"vups.sign",
-				"SUM(behaviours.price) as spent",
-			}).
-			Group("behaviours.target_uid, vups.uid").
-			Order("spent desc").
-			Limit(limit).
-			Find(&mostSpentVups).
-			Error
-	})
+	if err != nil {
+		return nil, err
+	}
 
-	if err := stream.Run(); err != nil {
+	err = db.Database.
+		Model(&db.Behaviour{}).
+		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.price > 0", uid).
+		Select([]string{
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
+			"SUM(behaviours.price) as spent",
+		}).
+		Group("behaviours.target_uid, vups.uid").
+		Order("spent desc").
+		Limit(limit).
+		Find(&mostSpentVups).
+		Error
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -107,49 +107,47 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 
 	r = r.Session(&gorm.Session{})
 
-	stream := db.NewParallelStream()
+	err := r.
+		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
+		Select([]string{
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
+			"COUNT(*) as count",
+			"SUM(behaviours.price) as price",
+		}).
+		Group("behaviours.target_uid, vups.uid").
+		Order(fmt.Sprintf("%s desc", orderBy)).
+		Limit(limit).
+		Find(&mostDDVups).
+		Error
 
-	stream.AddStmt(func() error {
-		return r.
-			Joins("left join vups on vups.uid = behaviours.target_uid").
-			Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
-			Select([]string{
-				"vups.name",
-				"vups.uid",
-				"vups.room_id",
-				"vups.face",
-				"vups.sign",
-				"COUNT(*) as count",
-				"SUM(behaviours.price) as price",
-			}).
-			Group("behaviours.target_uid, vups.uid").
-			Order(fmt.Sprintf("%s desc", orderBy)).
-			Limit(limit).
-			Find(&mostDDVups).
-			Error
-	})
+	if err != nil {
+		return nil, err
+	}
 
-	stream.AddStmt(func() error {
-		return r.
-			Joins("left join vups on vups.uid = behaviours.uid").
-			Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
-			Select([]string{
-				"vups.name",
-				"vups.uid",
-				"vups.room_id",
-				"vups.face",
-				"vups.sign",
-				"COUNT(*) as count",
-				"SUM(behaviours.price) as price",
-			}).
-			Group("behaviours.uid, vups.uid").
-			Limit(limit).
-			Order(fmt.Sprintf("%s desc", orderBy)).
-			Find(&mostGuestVups).
-			Error
-	})
+	err = r.
+		Joins("left join vups on vups.uid = behaviours.uid").
+		Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
+		Select([]string{
+			"vups.name",
+			"vups.uid",
+			"vups.room_id",
+			"vups.face",
+			"vups.sign",
+			"COUNT(*) as count",
+			"SUM(behaviours.price) as price",
+		}).
+		Group("behaviours.uid, vups.uid").
+		Limit(limit).
+		Order(fmt.Sprintf("%s desc", orderBy)).
+		Find(&mostGuestVups).
+		Error
 
-	if err := stream.Run(); err != nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -159,8 +157,7 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 	}, nil
 }
 
-// GetTotalBehaviourCount get total behaviour count by command
-//
+// GetTotalStatusByCommand get total behaviour count by command
 // Deprecated: use GetTotalCommandStats instead
 func GetTotalStatusByCommand(uid int64, command string) stats.TotalStats {
 
@@ -185,7 +182,7 @@ func GetTotalStatusByCommand(uid int64, command string) stats.TotalStats {
 }
 
 func GetTotalCommandStats(uid int64) ([]stats.TotalStats, error) {
-	var stats []stats.TotalStats
+	var totalStats []stats.TotalStats
 
 	err := db.Database.
 		Model(&db.Behaviour{}).
@@ -196,7 +193,7 @@ func GetTotalCommandStats(uid int64) ([]stats.TotalStats, error) {
 		}).
 		Where("uid = ? and uid != target_uid", uid).
 		Group("command").
-		Find(&stats).
+		Find(&totalStats).
 		Error
 
 	if err != nil {
@@ -204,5 +201,5 @@ func GetTotalCommandStats(uid int64) ([]stats.TotalStats, error) {
 		return nil, err
 	}
 
-	return stats, nil
+	return totalStats, nil
 }

@@ -58,14 +58,13 @@ func GetGlobalStats(top int) (*Globalstats, error) {
 	var mostDDVups []AnalysisUserInfo
 
 	stream := db.NewParallelStream()
-	stream.AddStmt(func() error {
-		s, err := stats.GetListening()
-		if err != nil {
-			return err
-		}
-		listeningCount = s.TotalListeningCount
-		return nil
-	})
+
+	s, err := stats.GetListening()
+	if err != nil {
+		return nil, err
+	}
+
+	listeningCount = s.TotalListeningCount
 
 	stream.AddStmt(func() (err error) {
 		recordCount, err = GetTotalVupCount()
@@ -92,7 +91,7 @@ func GetGlobalStats(top int) (*Globalstats, error) {
 		return
 	})
 
-	err := stream.Run()
+	err = stream.Run()
 	if err != nil {
 		return nil, err
 	}
