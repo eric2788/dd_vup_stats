@@ -23,7 +23,7 @@ type (
 	Behaviour struct {
 		ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
 		Uid       int64          `json:"uid" gorm:"index"`
-		CreatedAt time.Time      `json:"created_at"`
+		CreatedAt time.Time      `json:"created_at" gorm:"index"`
 		TargetUid int64          `json:"target_uid" gorm:"index"`
 		Command   string         `json:"command" gorm:"index"`
 		Display   string         `json:"display"`
@@ -58,7 +58,7 @@ type (
 		ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
 		Uid       int64          `json:"uid" gorm:"index"`
 		UName     string         `json:"u_name"`
-		CreatedAt time.Time      `json:"created_at"`
+		CreatedAt time.Time      `json:"created_at" gorm:"index"`
 		TargetUid int64          `json:"target_uid" gorm:"index"`
 		Command   string         `json:"command" gorm:"index"`
 		Display   string         `json:"display"`
