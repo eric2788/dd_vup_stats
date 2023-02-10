@@ -61,8 +61,6 @@ func GetGlobalStats(top int) (*Globalstats, error) {
 	var mostSpentVups []PricedUserInfo
 	var mostDDVups []AnalysisUserInfo
 
-	stream := db.NewParallelStream()
-
 	s, err := stats.GetListening()
 	if err != nil {
 		return nil, err
@@ -70,32 +68,27 @@ func GetGlobalStats(top int) (*Globalstats, error) {
 
 	listeningCount = s.TotalListeningCount
 
-	stream.AddStmt(func() (err error) {
-		recordCount, err = GetTotalVupCount()
-		return err
-	})
+	recordCount, err = GetTotalVupCount()
+	if err != nil {
+		return nil, err
+	}
 
-	stream.AddStmt(func() (err error) {
-		behaviourCount, err = GetTotalBehaviourCount()
-		return
-	})
+	behaviourCount, err = GetTotalBehaviourCount()
+	if err != nil {
+		return nil, err
+	}
 
-	stream.AddStmt(func() (err error) {
-		mostDDBehaviourVups, err = GetMostBehaviourVups(top)
-		return
-	})
+	mostDDBehaviourVups, err = GetMostBehaviourVups(top)
+	if err != nil {
+		return nil, err
+	}
 
-	stream.AddStmt(func() (err error) {
-		mostDDVups, err = GetMostDDVups(top)
-		return
-	})
+	mostDDVups, err = GetMostDDVups(top)
+	if err != nil {
+		return nil, err
+	}
 
-	stream.AddStmt(func() (err error) {
-		mostSpentVups, err = GetMostSpentPricedVups(top)
-		return
-	})
-
-	err = stream.Run()
+	mostSpentVups, err = GetMostSpentPricedVups(top)
 	if err != nil {
 		return nil, err
 	}
