@@ -56,12 +56,6 @@ type (
 		TopSpentVups []PricedUserInfo   `json:"top_spent_vups,omitempty"`
 	}
 
-	CountStats struct {
-		TotalVupRecorded      int64 `json:"total_vup_recorded"`
-		CurrentListeningCount int64 `json:"current_listening_count"`
-		TotalDDBehaviours     int64 `json:"total_dd_behaviours"`
-	}
-
 	Globalstats struct {
 		TotalVupRecorded      int64              `json:"total_vup_recorded"`
 		CurrentListeningCount int64              `json:"current_listening_count"`
