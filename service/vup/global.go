@@ -5,7 +5,7 @@ import (
 	"vup_dd_stats/service/stats"
 )
 
-func GetCountStats() (map[string]int64, error) {
+func GetCountStats() (*map[string]int64, error) {
 	s, err := stats.GetListening()
 	if err == nil {
 		logger.Errorf("獲取總聆聽人數出現錯誤: %v", err)
@@ -24,7 +24,7 @@ func GetCountStats() (map[string]int64, error) {
 		return nil, err
 	}
 
-	return map[string]int64{
+	return &map[string]int64{
 		"total_vup_recorded":      recordCount,
 		"current_listening_count": s.TotalListeningCount,
 		"total_dd_behaviours":     behaviourCount,
