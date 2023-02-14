@@ -1,6 +1,8 @@
 package watcher
 
 import (
+	"errors"
+	"gorm.io/gorm"
 	"vup_dd_stats/service/db"
 
 	"github.com/sirupsen/logrus"
@@ -11,22 +13,22 @@ var logger = logrus.WithField("service", "watcher")
 func GetWatcher(uid int64) (*WatcherResp, error) {
 	var resp WatcherResp
 
-	u_name := "u_name"
+	uName := "u_name"
 	if db.DatabaseType == "postgres" {
-		u_name = "(array_agg(u_name order by created_at desc))[1] as u_name"
+		uName = "(array_agg(u_name order by created_at desc))[1] as u_name"
 	}
 
-	u_names := "GROUP_CONCAT(DISTINCT u_name SEPARATOR ',') as u_names"
+	uNames := "GROUP_CONCAT(DISTINCT u_name SEPARATOR ',') as u_names"
 	if db.DatabaseType == "postgres" {
-		u_names = "array_to_string(array_agg(distinct u_name), ',') as u_names"
+		uNames = "array_to_string(array_agg(distinct u_name), ',') as u_names"
 	}
 
 	err := db.Database.
 		Model(&db.WatcherBehaviour{}).
 		Select([]string{
 			"uid",
-			u_name,
-			u_names,
+			uName,
+			uNames,
 			"COUNT(target_uid) as dd_count",
 			"MAX(created_at) AS last_behaviour_at",
 			"MIN(created_at) AS first_listen_at",
@@ -37,7 +39,9 @@ func GetWatcher(uid int64) (*WatcherResp, error) {
 		Take(&resp).
 		Error
 
-	if err != nil {
+	if errors.Is(err, gorm.ErrRecordNotFound) || resp.Uid == 0 {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 
