@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"os"
-	"strings"
 	"sync"
 	"vup_dd_stats/controller/records"
 	"vup_dd_stats/controller/stats"
@@ -53,18 +52,15 @@ func main() {
 	router := gin.New()
 
 	router.Use(func(c *gin.Context) {
-		if os.Getenv("SKIP_RECORDS_LOG") == "true" {
-			// for /records/:uid only
-			if strings.HasPrefix(c.Request.URL.Path, "/records/") {
-				c.Next()
-				return
-			}
+		if c.Query("log") == "false" {
+			c.Next()
+			return
 		}
 		gin.Logger()(c)
 	})
 
 	router.Use(CORS())
-	router.Use(ErrorHandler)
+	router.Use(ErrorHandler())
 
 	user.Register(router.Group("/user"))
 	stats.Register(router.Group("/stats"))
