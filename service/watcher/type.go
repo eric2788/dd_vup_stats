@@ -51,6 +51,6 @@ type (
 		LastBehaviourAt time.Time          `json:"last_behaviour_at"`
 		DDCount         int64              `json:"dd_count"`
 		TotalSpent      float64            `json:"total_spent"`
-		Behaviours      []stats.TotalStats `json:"behaviours"`
+		Behaviours      []stats.TotalStats `json:"behaviours" gorm:"-"`
 	}
 )

@@ -19,7 +19,7 @@ type (
 
 	UserDetailResp struct {
 		UserResp
-		BehavioursCount map[string]stats.TotalStats `json:"behaviours_count"`
+		BehavioursCount []stats.TotalStats `json:"behaviours_count"`
 	}
 
 	UserInfo struct {
