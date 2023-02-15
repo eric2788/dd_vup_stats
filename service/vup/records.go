@@ -104,7 +104,9 @@ func GetGlobalRecords(search, cmd string, page, pageSize int, showSelf bool) (*s
 		return nil, err
 	}
 
-	go logger.Infof("记录行为搜索: %s", search)
+	if search != "" {
+		go logger.Infof("记录行为搜索: %s", search)
+	}
 
 	return &stats.ListResp[RecordResp]{
 		Total:   totalSearchCount,
