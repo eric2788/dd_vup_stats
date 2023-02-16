@@ -2,8 +2,10 @@ package watcher
 
 import (
 	"errors"
-	"gorm.io/gorm"
+	"vup_dd_stats/service/analysis"
 	"vup_dd_stats/service/db"
+
+	"gorm.io/gorm"
 
 	"github.com/sirupsen/logrus"
 )
@@ -44,6 +46,8 @@ func GetWatcher(uid int64) (*WatcherResp, error) {
 	} else if err != nil {
 		return nil, err
 	}
+
+	go analysis.RecordSearchUser(uid, resp.UName, "watcher")
 
 	resp.Behaviours, err = GetTotalCommandStats(uid)
 

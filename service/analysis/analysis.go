@@ -54,13 +54,13 @@ func RecordSearchText(txt string, result int64) {
 	logger.Infof("搜索數據儲存成功: %q 已被搜索 %d 次", ana.SearchText, ana.AccessCount)
 }
 
-func RecordSearchUser(uid int64, name string) {
+func RecordSearchUser(uid int64, name, category string) {
 	ana := &db.UserAnalysis{}
 
-	err := db.Database.FirstOrCreate(ana, db.UserAnalysis{Uid: uid}).Error
+	err := db.Database.FirstOrCreate(ana, db.UserAnalysis{Uid: uid, Category: category}).Error
 
 	if err != nil {
-		logger.Errorf("尋找或創建匿名vup訪問數據時出現錯誤: %v", err)
+		logger.Errorf("尋找或創建匿名 %s 訪問數據時出現錯誤: %v", category, err)
 		return
 	}
 
@@ -71,9 +71,9 @@ func RecordSearchUser(uid int64, name string) {
 	err = db.Database.Save(ana).Error
 
 	if err != nil {
-		logger.Errorf("儲存vup訪問數據時出現錯誤: %v", err)
+		logger.Errorf("儲存 %s 訪問數據時出現錯誤: %v", category, err)
 		return
 	}
 
-	logger.Infof("vup統計數據儲存成功: %s(%d) 已被訪問 %d 次", name, ana.Uid, ana.AccessCount)
+	logger.Infof("%s 統計數據儲存成功: %s(%d) 已被訪問 %d 次", category, name, ana.Uid, ana.AccessCount)
 }

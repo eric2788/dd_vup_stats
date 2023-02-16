@@ -45,6 +45,7 @@ type (
 		Analysis
 		Uid      int64 `gorm:"primaryKey;autoIncrement:false"`
 		UserName string
+		Category string `gorm:"default:'vup'"`
 	}
 
 	SearchAnalysis struct {
