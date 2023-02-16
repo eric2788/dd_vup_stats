@@ -118,7 +118,7 @@ func GetMostDDVups(limit int) ([]AnalysisUserInfo, error) {
 			"vups.sign",
 			"COUNT(DISTINCT behaviours.target_uid) as count",
 		}).
-		Joins("left join vups on vups.uid = behaviours.uid").
+		Joins("inner join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid != behaviours.uid").
 		Group("behaviours.uid, vups.uid").
 		Order("count desc").
@@ -142,7 +142,7 @@ func GetMostFamousVups(limit int) ([]AnalysisUserInfo, error) {
 			"vups.sign",
 			"COUNT(DISTINCT behaviours.uid) as count",
 		}).
-		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Joins("inner join vups on vups.uid = behaviours.target_uid").
 		Where("behaviours.target_uid != behaviours.uid").
 		Group("behaviours.target_uid, vups.uid").
 		Order("count desc").
@@ -165,7 +165,7 @@ func GetMostInteractedVups(limit int) ([]AnalysisUserInfo, error) {
 			"vups.sign",
 			"COUNT(*) as count",
 		}).
-		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Joins("inner join vups on vups.uid = behaviours.target_uid").
 		Where("behaviours.target_uid != behaviours.uid").
 		Group("behaviours.target_uid, vups.uid").
 		Order("count desc").
@@ -189,7 +189,7 @@ func GetMostBehaviourVups(limit int) ([]AnalysisUserInfo, error) {
 			"COUNT(*) as count",
 			"SUM(behaviours.price) as price",
 		}).
-		Joins("left join vups on vups.uid = behaviours.uid").
+		Joins("inner join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid != behaviours.uid").
 		Group("behaviours.uid, vups.uid").
 		Order("count desc").
@@ -213,7 +213,7 @@ func GetMostSpentPricedVups(limit int) ([]PricedUserInfo, error) {
 			"vups.sign",
 			"SUM(behaviours.price) as spent",
 		}).
-		Joins("left join vups on vups.uid = behaviours.uid").
+		Joins("inner join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid != behaviours.uid and behaviours.price > 0").
 		Group("behaviours.uid, vups.uid").
 		Order("spent desc").

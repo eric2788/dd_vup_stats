@@ -50,7 +50,7 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) ([]Analys
 	// D 最多
 	err := r.
 		Where("watcher_behaviours.uid = ? AND watcher_behaviours.command = ?", uid, command).
-		Joins("left join vups on vups.uid = watcher_behaviours.target_uid").
+		Joins("inner join vups on vups.uid = watcher_behaviours.target_uid").
 		Select([]string{
 			"vups.name",
 			"vups.uid",
@@ -78,7 +78,7 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 	// D 最多
 	err := db.Database.
 		Model(&db.WatcherBehaviour{}).
-		Joins("left join vups on vups.uid = watcher_behaviours.target_uid").
+		Joins("inner join vups on vups.uid = watcher_behaviours.target_uid").
 		Where("watcher_behaviours.uid = ?", uid).
 		Select([]string{
 			"vups.name",
@@ -102,7 +102,7 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 	// 花費最多
 	err = db.Database.
 		Model(&db.WatcherBehaviour{}).
-		Joins("left join vups on vups.uid = watcher_behaviours.target_uid").
+		Joins("inner join vups on vups.uid = watcher_behaviours.target_uid").
 		Where("watcher_behaviours.uid = ? and watcher_behaviours.price > 0", uid).
 		Select([]string{
 			"vups.name",

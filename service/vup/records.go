@@ -85,7 +85,7 @@ func GetGlobalRecords(search, cmd string, page, pageSize int, showSelf bool) (*s
 
 	err := r.
 		Select("behaviours.*, vups.face as vup_face").
-		Joins("left join vups on vups.uid = behaviours.uid").
+		Joins("inner join vups on vups.uid = behaviours.uid").
 		Offset((page - 1) * pageSize).
 		Limit(pageSize).
 		Order("behaviours.created_at desc").

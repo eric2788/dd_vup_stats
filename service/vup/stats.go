@@ -17,7 +17,7 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 
 	err := db.Database.
 		Model(&db.Behaviour{}).
-		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Joins("inner join vups on vups.uid = behaviours.target_uid").
 		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid", uid).
 		Select([]string{
 			"vups.name",
@@ -40,7 +40,7 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 
 	err = db.Database.
 		Model(&db.Behaviour{}).
-		Joins("left join vups on vups.uid = behaviours.uid").
+		Joins("inner join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid", uid).
 		Select([]string{
 			"vups.name",
@@ -63,7 +63,7 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 
 	err = db.Database.
 		Model(&db.Behaviour{}).
-		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Joins("inner join vups on vups.uid = behaviours.target_uid").
 		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.price > 0", uid).
 		Select([]string{
 			"vups.name",
@@ -108,7 +108,7 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 	r = r.Session(&gorm.Session{})
 
 	err := r.
-		Joins("left join vups on vups.uid = behaviours.target_uid").
+		Joins("inner join vups on vups.uid = behaviours.target_uid").
 		Where("behaviours.uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
 		Select([]string{
 			"vups.name",
@@ -130,7 +130,7 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 	}
 
 	err = r.
-		Joins("left join vups on vups.uid = behaviours.uid").
+		Joins("inner join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid = ? and behaviours.target_uid != behaviours.uid and behaviours.command = ?", uid, command).
 		Select([]string{
 			"vups.name",

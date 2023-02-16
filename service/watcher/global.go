@@ -35,7 +35,7 @@ func GetMostFamousVups(limit int) ([]AnalysisVupInfo, error) {
 			"vups.face",
 			"COUNT(DISTINCT watcher_behaviours.uid) as count",
 		}).
-		Joins("left join vups on vups.uid = watcher_behaviours.target_uid").
+		Joins("inner join vups on vups.uid = watcher_behaviours.target_uid").
 		Group("watcher_behaviours.target_uid, vups.uid").
 		Order("count desc").
 		Limit(limit).
@@ -55,7 +55,7 @@ func GetMostInteractedVups(limit int) ([]AnalysisVupInfo, error) {
 			"vups.face",
 			"COUNT(watcher_behaviours.uid) as count",
 		}).
-		Joins("left join vups on vups.uid = watcher_behaviours.target_uid").
+		Joins("inner join vups on vups.uid = watcher_behaviours.target_uid").
 		Group("watcher_behaviours.target_uid, vups.uid").
 		Order("count desc").
 		Limit(limit).

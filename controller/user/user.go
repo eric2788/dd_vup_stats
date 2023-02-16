@@ -92,7 +92,7 @@ func GetUser(c *gin.Context) {
 		logger.Warn(err)
 		c.JSON(400, gin.H{
 			"code":    400,
-			"message": "uid must be a number",
+			"message": "UID 必须为数字",
 		})
 		return
 	}
@@ -111,7 +111,7 @@ func GetUser(c *gin.Context) {
 	if resp == nil {
 		c.JSON(404, gin.H{
 			"code":    404,
-			"message": "user not found",
+			"message": "用户不存在",
 		})
 		return
 	} else {

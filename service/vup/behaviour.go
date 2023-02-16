@@ -17,8 +17,6 @@ func GetTotalBehaviourCount() (int64, error) {
 	return recordCount, err
 }
 
-
-
 func GetMostBehaviourVupsByCommand(limit int, command string, price bool) ([]AnalysisUserInfo, error) {
 	var mostDDBehaviourVups []AnalysisUserInfo
 
@@ -38,7 +36,7 @@ func GetMostBehaviourVupsByCommand(limit int, command string, price bool) ([]Ana
 			"COUNT(*) as count",
 			"SUM(behaviours.price) as price",
 		}).
-		Joins("left join vups on vups.uid = behaviours.uid").
+		Joins("inner join vups on vups.uid = behaviours.uid").
 		Where("behaviours.target_uid != behaviours.uid and behaviours.command = ?", command).
 		Group("behaviours.uid, vups.uid").
 		Order(fmt.Sprintf("%s desc", orderBy)).
