@@ -75,7 +75,7 @@ func GetVup(uid int64) (*UserDetailResp, error) {
 			"MAX(last_listens.last_listen_at) AS last_listened_at",
 			"SUM(behaviours.price) AS total_spent",
 		}).
-		Joins("inner join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
+		Joins("left join behaviours on behaviours.uid = vups.uid and behaviours.uid != behaviours.target_uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
 		Group("behaviours.uid, vups.uid").
 		Take(&vup).
@@ -202,7 +202,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*st
 			"MAX(last_listens.last_listen_at) AS last_listened_at",
 			"SUM(behaviours.price) AS total_spent",
 		}).
-		Joins("inner join behaviours on behaviours.uid = vups.uid").
+		Joins("left join behaviours on behaviours.uid = vups.uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
 		Where("vups.name like ? and behaviours.uid != behaviours.target_uid", fmt.Sprintf("%%%s%%", name)).
 		Group("behaviours.uid, vups.uid").
