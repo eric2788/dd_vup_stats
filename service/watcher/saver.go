@@ -11,13 +11,9 @@ import (
 
 var (
 	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 4096)
-	ctx                   context.Context
 )
 
 func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
-	if ctx != nil {
-		<-ctx.Done()
-	}
 	watcherBehaviourQueue <- wb
 }
 
@@ -38,9 +34,6 @@ func RunSaveTimer(ctx context.Context) {
 }
 
 func insertWatchers() {
-	c, cancel := context.WithCancel(context.Background())
-	ctx = c
-	defer cancel()
 	inserts := make([]*db.WatcherBehaviour, 0)
 	for watcher := range watcherBehaviourQueue {
 		inserts = append(inserts, watcher)
