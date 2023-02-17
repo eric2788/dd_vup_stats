@@ -40,6 +40,9 @@ func insertWatchers() {
 	defer wg.Done()
 	inserts := make([]*db.WatcherBehaviour, 0)
 	for watcher := range watcherBehaviourQueue {
+		if len(watcherBehaviourQueue) == 0 {
+			break
+		}
 		inserts = append(inserts, watcher)
 	}
 	if len(inserts) == 0 {
