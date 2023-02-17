@@ -16,7 +16,6 @@ var (
 )
 
 func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
-	wg.Wait()
 	watcherBehaviourQueue <- wb
 }
 
