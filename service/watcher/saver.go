@@ -16,7 +16,6 @@ var (
 )
 
 func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
-	wg.Wait()
 	watcherBehaviourQueue <- wb
 }
 
@@ -44,6 +43,7 @@ func insertWatchers() {
 		inserts = append(inserts, watcher)
 	}
 	if len(inserts) == 0 {
+		logger.Debugf("没有可以插入的 watcher_behaviour 数据, 跳过")
 		return
 	}
 	result := db.Database.CreateInBatches(inserts, len(inserts))
