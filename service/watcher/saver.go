@@ -11,11 +11,12 @@ import (
 // to avoid hitting the database too often and huge performance issues
 
 var (
-	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 1000)
+	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 4096)
 	wg                    = &sync.WaitGroup{}
 )
 
 func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
+	wg.Wait()
 	watcherBehaviourQueue <- wb
 }
 
@@ -51,8 +52,8 @@ func insertWatchers() {
 	}
 	result := db.Database.CreateInBatches(inserts, len(inserts))
 	if result.Error != nil {
-		logger.Errorf("插入 watcher_behaviour 数据失败: %v", result.Error)
+		logger.Errorf("寫入 watcher_behaviour 記錄失敗: %v", result.Error)
 	} else if result.RowsAffected > 0 {
-		logger.Infof("插入 %d 条 watcher_behaviour 数据成功", result.RowsAffected)
+		logger.Infof("成功寫入 %d 筆 watcher_behaviour 的記錄。", result.RowsAffected)
 	}
 }
