@@ -40,10 +40,10 @@ func insertWatchers() {
 	defer wg.Done()
 	inserts := make([]*db.WatcherBehaviour, 0)
 	for watcher := range watcherBehaviourQueue {
+		inserts = append(inserts, watcher)
 		if len(watcherBehaviourQueue) == 0 {
 			break
 		}
-		inserts = append(inserts, watcher)
 	}
 	if len(inserts) == 0 {
 		logger.Debugf("没有可以插入的 watcher_behaviour 数据, 跳过")

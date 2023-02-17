@@ -29,10 +29,11 @@ func TestSaveWatcherQueue(t *testing.T) {
 			wg.Add(1)
 			t.Log(len(queue))
 			for a := range queue {
+
+				t.Log(a, len(queue))
 				if len(queue) == 0 {
 					break
 				}
-				t.Log(a, len(queue))
 			}
 			wg.Done()
 		}
