@@ -2,7 +2,6 @@ package watcher
 
 import (
 	"context"
-	"sync"
 	"time"
 	"vup_dd_stats/service/db"
 )
@@ -12,14 +11,17 @@ import (
 
 var (
 	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 4096)
-	wg                    = &sync.WaitGroup{}
+	ctx                   context.Context
 )
 
 func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
+	if ctx != nil {
+		<-ctx.Done()
+	}
 	watcherBehaviourQueue <- wb
 }
 
-// save the watcher_behaviour records to the database
+// RunSaveTimer save the watcher_behaviour records to the database
 // this is run in a goroutine
 func RunSaveTimer(ctx context.Context) {
 	timer := time.NewTicker(5 * time.Second)
@@ -36,8 +38,9 @@ func RunSaveTimer(ctx context.Context) {
 }
 
 func insertWatchers() {
-	wg.Add(1)
-	defer wg.Done()
+	c, cancel := context.WithCancel(context.Background())
+	ctx = c
+	defer cancel()
 	inserts := make([]*db.WatcherBehaviour, 0)
 	for watcher := range watcherBehaviourQueue {
 		inserts = append(inserts, watcher)

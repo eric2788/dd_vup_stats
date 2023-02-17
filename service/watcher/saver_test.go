@@ -1,21 +1,25 @@
 package watcher_test
 
 import (
+	"context"
 	"fmt"
-	"sync"
+	"golang.org/x/exp/rand"
 	"testing"
 	"time"
 )
 
 var (
 	queue = make(chan string, 10)
-	wg    = &sync.WaitGroup{}
+	ctx   context.Context
 )
 
 func TestSaveWatcherQueue(t *testing.T) {
 	go func() {
 		for i := 0; i < 100; i++ {
-			wg.Wait()
+			<-time.After(time.Duration(rand.Int63n(1000)) * time.Millisecond)
+			if ctx != nil {
+				<-ctx.Done()
+			}
 			queue <- fmt.Sprintf("test-%d", i)
 		}
 	}()
@@ -26,16 +30,16 @@ func TestSaveWatcherQueue(t *testing.T) {
 		for {
 			t.Log("wait")
 			<-timer.C
-			wg.Add(1)
+			c, cancel := context.WithCancel(context.Background())
+			ctx = c
 			t.Log(len(queue))
 			for a := range queue {
-
 				t.Log(a, len(queue))
 				if len(queue) == 0 {
 					break
 				}
 			}
-			wg.Done()
+			cancel()
 		}
 	}()
 
