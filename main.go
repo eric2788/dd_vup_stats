@@ -11,6 +11,7 @@ import (
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	statistics "vup_dd_stats/service/stats"
+	w "vup_dd_stats/service/watcher"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -48,6 +49,7 @@ func main() {
 
 	go blive.StartWebSocket(ctx, wg)
 	go statistics.StartListenStats(ctx)
+	go w.RunSaveTimer(ctx)
 
 	router := gin.New()
 

@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"fmt"
-	"gorm.io/gorm"
 	"strconv"
 	"time"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/vup"
+	"vup_dd_stats/service/watcher"
+
+	"gorm.io/gorm"
 )
 
 func giftMsg(data *blive.LiveData) error {
@@ -84,7 +86,8 @@ func giftMsg(data *blive.LiveData) error {
 	if isVup {
 		result = db.Database.Create(behaviour)
 	} else {
-		result = db.Database.Create(behaviour.ToWatcherBehaviour(gift.Uname))
+		go watcher.SaveWatcherBehaviour(behaviour.ToWatcherBehaviour(gift.Uname))
+		return nil;
 	}
 
 	if result.Error != nil {
