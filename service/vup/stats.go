@@ -101,7 +101,7 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysi
 	orderBy := "count"
 
 	if price {
-		orderBy = "SUM(price)"
+		orderBy = "price"
 		r = r.Where("behaviours.price > 0")
 	}
 

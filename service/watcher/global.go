@@ -160,21 +160,21 @@ func GetMostBehaviourWatchersByCommand(limit int, command string, price bool) ([
 		orderBy = "price"
 	}
 
-	u_name := "u_name"
+	uName := "u_name"
 	if db.DatabaseType == "postgres" {
-		u_name = "(array_agg(u_name order by created_at desc))[1] as u_name"
+		uName = "(array_agg(u_name order by created_at desc))[1] as u_name"
 	}
 
 	err := db.Database.
 		Model(&db.WatcherBehaviour{}).
 		Select([]string{
 			"uid",
-			u_name,
+			uName,
 			"COUNT(*) as count",
 			"SUM(price) as price",
 		}).
 		Where("command = ?", command).
-		Group("behaviours.uid, vups.uid").
+		Group("uid").
 		Order(fmt.Sprintf("%s desc", orderBy)).
 		Limit(limit).
 		Find(&mostDDBehaviourVups).
