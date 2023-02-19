@@ -16,6 +16,10 @@ var (
 	DatabaseType = ""
 )
 
+const (
+	CountStatement = "SELECT reltuples AS estimate FROM pg_class where relname = ?"
+)
+
 func InitDB() {
 
 	log.Info("正在連接資料庫...")

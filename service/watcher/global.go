@@ -9,16 +9,19 @@ func GetStatsByType(top int, t string) (interface{}, error) {
 	switch t {
 	case "count":
 		return GetTotalCount()
-	case "dd":
-		return GetMostDDWatchers(top)
-	case "behaviours":
-		return GetMostBehaviourWatchers(top)
-	case "spent":
-		return GetMostSpentWatchers(top)
-	case "famous":
-		return GetMostFamousVups(top)
-	case "interacted":
-		return GetMostInteractedVups(top)
+		/* have performance issue, forbid temporarily
+		case "dd":
+			return GetMostDDWatchers(top)
+		case "behaviours":
+			return GetMostBehaviourWatchers(top)
+		case "spent":
+			return GetMostSpentWatchers(top)
+		case "famous":
+			return GetMostFamousVups(top)
+		case "interacted":
+			return GetMostInteractedVups(top)
+
+		*/
 	default:
 		return nil, fmt.Errorf("unknown type: %s", t)
 	}
@@ -93,7 +96,7 @@ func GetMostDDWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 func GetTotalCount() (int64, error) {
 	var count int64
 	err := db.Database.
-		Model(&db.WatcherBehaviour{}).
+		Raw(db.CountStatement, "watcher_behaviours").
 		Count(&count).
 		Error
 	return count, err

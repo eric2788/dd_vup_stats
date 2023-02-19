@@ -53,7 +53,10 @@ func IsVup(uid int64) (bool, error) {
 
 func GetTotalVupCount() (int64, error) {
 	var count int64
-	err := db.Database.Model(&db.Vup{}).Count(&count).Error
+	err := db.Database.
+		Raw(db.CountStatement, "vups").
+		Count(&count).
+		Error
 	return count, err
 }
 

@@ -14,7 +14,7 @@ func Register(group *gin.RouterGroup) {
 
 	// disabled global statistics for now
 	// due to slow and high impact on performance
-	//group.GET("/stats", GetGlobalStats)
+	group.GET("/stats", GetGlobalStats) // only for count currently
 	//group.GET("/stats/command/:command", GetCommandStatus)
 
 	group.GET("/stats/:uid", GetWatcherStats)

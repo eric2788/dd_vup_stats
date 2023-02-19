@@ -10,7 +10,7 @@ func GetTotalBehaviourCount() (int64, error) {
 	var recordCount int64
 
 	err := db.Database.
-		Model(&db.Behaviour{}).
+		Raw(db.CountStatement, "behaviours").
 		Count(&recordCount).
 		Error
 
