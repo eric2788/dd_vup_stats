@@ -8,12 +8,14 @@ import (
 	"vup_dd_stats/controller/stats"
 	"vup_dd_stats/controller/user"
 	"vup_dd_stats/controller/watcher"
+	"vup_dd_stats/middlewares"
 	"vup_dd_stats/service/blive"
 	"vup_dd_stats/service/db"
 	statistics "vup_dd_stats/service/stats"
 	w "vup_dd_stats/service/watcher"
 
-	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/pprof"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -61,8 +63,9 @@ func main() {
 		gin.Logger()(c)
 	})
 
-	router.Use(CORS())
-	router.Use(ErrorHandler())
+	router.Use(middlewares.CORS())
+	router.Use(middlewares.ErrorHandler())
+	pprof.Register(router, "/debug/pprof")
 
 	user.Register(router.Group("/user"))
 	stats.Register(router.Group("/stats"))
@@ -75,23 +78,4 @@ func main() {
 
 	cancel()
 	wg.Wait()
-}
-
-func CORS() gin.HandlerFunc {
-	def := cors.DefaultConfig()
-	return cors.New(cors.Config{
-		AllowOrigins: []string{
-			"https://ddstats.ericlamm.xyz",
-			"https://ddstats.pages.dev",
-			os.Getenv("DEV_HOST"),
-		},
-		AllowWebSockets: true,
-		AllowMethods:    def.AllowMethods,
-		AllowHeaders: []string{
-			"Authorization",
-			"Content-Type",
-			"Origin",
-			"Content-Length",
-		},
-	})
 }
