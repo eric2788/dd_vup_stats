@@ -15,7 +15,7 @@ var (
 )
 
 const (
-	CountStatement = "SELECT reltuples AS estimate FROM pg_class where relname = ?"
+	CountStatement = "SELECT cast(reltuples as bigint) AS count FROM pg_class where relname = ?"
 )
 
 func InitDB() {
