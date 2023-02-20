@@ -2,7 +2,6 @@ package watcher
 
 import (
 	"context"
-	"sync"
 	"time"
 	"vup_dd_stats/service/db"
 )
@@ -11,15 +10,14 @@ import (
 // to avoid hitting the database too often and huge performance issues
 
 var (
-	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 1000)
-	wg                    = &sync.WaitGroup{}
+	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 4096)
 )
 
 func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
 	watcherBehaviourQueue <- wb
 }
 
-// save the watcher_behaviour records to the database
+// RunSaveTimer save the watcher_behaviour records to the database
 // this is run in a goroutine
 func RunSaveTimer(ctx context.Context) {
 	timer := time.NewTicker(5 * time.Second)
@@ -36,8 +34,6 @@ func RunSaveTimer(ctx context.Context) {
 }
 
 func insertWatchers() {
-	wg.Add(1)
-	defer wg.Done()
 	inserts := make([]*db.WatcherBehaviour, 0)
 	for watcher := range watcherBehaviourQueue {
 		inserts = append(inserts, watcher)
@@ -51,8 +47,8 @@ func insertWatchers() {
 	}
 	result := db.Database.CreateInBatches(inserts, len(inserts))
 	if result.Error != nil {
-		logger.Errorf("插入 watcher_behaviour 数据失败: %v", result.Error)
+		logger.Errorf("寫入 watcher_behaviour 記錄失敗: %v", result.Error)
 	} else if result.RowsAffected > 0 {
-		logger.Infof("插入 %d 条 watcher_behaviour 数据成功", result.RowsAffected)
+		logger.Infof("成功寫入 %d 筆 watcher_behaviour 的記錄。", result.RowsAffected)
 	}
 }

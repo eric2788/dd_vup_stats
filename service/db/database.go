@@ -16,6 +16,10 @@ var (
 	DatabaseType = ""
 )
 
+const (
+	CountStatement = "SELECT reltuples AS estimate FROM pg_class where relname = ?"
+)
+
 func InitDB() {
 
 	log.Info("正在連接資料庫...")
@@ -64,7 +68,7 @@ func InitDB() {
 
 	if err = db.
 		AutoMigrate(&Vup{}, &Behaviour{}, &LastListen{}, &UserAnalysis{}, &SearchAnalysis{}, &WatcherBehaviour{}); err != nil {
-		log.Fatalf("Error while auto migrating tables: %v", err)
+		log.Errorf("Error while auto migrating tables: %v", err)
 	}
 
 	Database = db
