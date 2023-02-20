@@ -125,3 +125,56 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 		TopSpentVups: mostSpentVups,
 	}, nil
 }
+
+
+// GetMostBehavioursByVup 返回该 vup 中最高互动的 watcher
+func GetMostBehavioursByVup(uid int64, limit int) ([]AnalysisWatcherInfo, error) {
+	
+	var mostDDWatchers []AnalysisWatcherInfo
+
+	err := db.Database.
+		Model(&db.WatcherBehaviour{}).
+		Select([]string{
+			"uid",
+			"(array_agg(u_name order by created_at desc))[1] as u_name",
+			"COUNT(*) as count",
+		}).
+		Where("target_uid = ?", uid).
+		Group("uid").
+		Order("count desc").
+		Limit(limit).
+		Find(&mostDDWatchers).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return mostDDWatchers, nil
+}
+
+// GetMostSpentByVup 返回该 vup 中花费最多的 watcher
+func GetMostSpentByVup(uid int64, limit int) ([]AnalysisWatcherInfo, error) {
+	
+	var mostSpentWatchers []AnalysisWatcherInfo
+
+	err := db.Database.
+		Model(&db.WatcherBehaviour{}).
+		Select([]string{
+			"uid",
+			"(array_agg(u_name order by created_at desc))[1] as u_name",
+			"SUM(price) as price",
+		}).
+		Where("target_uid = ? and price > 0", uid).
+		Group("uid").
+		Order("price desc").
+		Limit(limit).
+		Find(&mostSpentWatchers).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return mostSpentWatchers, nil
+}

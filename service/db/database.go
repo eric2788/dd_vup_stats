@@ -2,7 +2,6 @@ package db
 
 import (
 	"os"
-	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -11,9 +10,8 @@ import (
 )
 
 var (
-	log          = logrus.WithField("service", "db")
-	Database     *gorm.DB
-	DatabaseType = ""
+	log      = logrus.WithField("service", "db")
+	Database *gorm.DB
 )
 
 const (
@@ -24,18 +22,6 @@ func InitDB() {
 
 	log.Info("正在連接資料庫...")
 
-	DatabaseType = strings.ToLower(os.Getenv("DB_TYPE"))
-
-	if DatabaseType == "" {
-		log.Fatal("未設定資料庫類型, 請在環境參數中設定 DB_TYPE")
-	}
-
-	getDataSource, exist := dialectMap[DatabaseType]
-
-	if !exist {
-		log.Fatalf("不支持的資料庫類型: %v", DatabaseType)
-	}
-
 	var logLevel logger.LogLevel
 
 	if os.Getenv("GIN_MODE") != "release" {
@@ -44,7 +30,7 @@ func InitDB() {
 		logLevel = logger.Silent
 	}
 
-	db, err := gorm.Open(getDataSource(), &gorm.Config{
+	db, err := gorm.Open(getPgSQLDataSource(), &gorm.Config{
 		Logger:                 logger.Default.LogMode(logLevel),
 		PrepareStmt:            true,
 		SkipDefaultTransaction: true,

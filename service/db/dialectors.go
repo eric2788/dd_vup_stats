@@ -8,13 +8,8 @@ import (
 	"os"
 )
 
-var (
-	dialectMap = map[string]func() gorm.Dialector{
-		"mysql":    getMySQLDataSource,
-		"postgres": getPgSQLDataSource,
-	}
-)
-
+// getMySQLDataSource returns a gorm.Dialector for MySQL.
+// Deprecated: Use getPgSQLDataSource instead.
 func getMySQLDataSource() gorm.Dialector {
 	mysqlUser := os.Getenv("MYSQL_USER")
 	mysqlPass := os.Getenv("MYSQL_PASS")
@@ -32,6 +27,7 @@ func getMySQLDataSource() gorm.Dialector {
 	))
 }
 
+// getPgSQLDataSource returns a gorm.Dialector for PostgreSQL.
 func getPgSQLDataSource() gorm.Dialector {
 	pgUser := os.Getenv("PG_USER")
 	pgPass := os.Getenv("PG_PASS")
