@@ -24,7 +24,7 @@ func Register(group *gin.RouterGroup) {
 }
 
 func GetCommandStatus(c *gin.Context) {
-	top, err := strconv.Atoi(c.DefaultQuery("top", "3"))
+	top, err := strconv.Atoi(c.DefaultQuery("top", "-1"))
 
 	if err != nil {
 		logger.Error(err)
@@ -33,13 +33,6 @@ func GetCommandStatus(c *gin.Context) {
 			"message": "top must be an integer",
 		})
 		return
-	}
-
-	// 最高拿到 50
-	if top > 50 {
-		top = 50
-	} else if top <= 0 {
-		top = 3
 	}
 
 	price := c.DefaultQuery("price", "false") != "false"
@@ -75,7 +68,7 @@ func GetWatcherStatsCommand(c *gin.Context) {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "5"))
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "-1"))
 
 	if err != nil {
 		logger.Warn(err)
@@ -84,13 +77,6 @@ func GetWatcherStatsCommand(c *gin.Context) {
 			"message": "limit must be a number",
 		})
 		return
-	}
-
-	// 最高拿到 50
-	if limit > 50 {
-		limit = 50
-	} else if limit <= 0 {
-		limit = 1
 	}
 
 	orderPrice := c.DefaultQuery("price", "false") != "false"
@@ -214,7 +200,7 @@ func GetWatcher(c *gin.Context) {
 }
 
 func GetGlobalStats(c *gin.Context) {
-	top, err := strconv.Atoi(c.DefaultQuery("top", "3"))
+	top, err := strconv.Atoi(c.DefaultQuery("top", "-1"))
 
 	if err != nil {
 		logger.Error(err)
@@ -223,13 +209,6 @@ func GetGlobalStats(c *gin.Context) {
 			"message": "top must be an integer",
 		})
 		return
-	}
-
-	// 最高拿到 50
-	if top > 50 {
-		top = 50
-	} else if top <= 0 {
-		top = 3
 	}
 
 	statsType := c.DefaultQuery("type", "")
@@ -264,7 +243,7 @@ func GetWatcherStats(c *gin.Context) {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "5"))
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "-1"))
 
 	if err != nil {
 		logger.Warn(err)
@@ -273,13 +252,6 @@ func GetWatcherStats(c *gin.Context) {
 			"message": "limit must be a number",
 		})
 		return
-	}
-
-	// 最高拿到 50
-	if limit > 50 {
-		limit = 50
-	} else if limit <= 0 {
-		limit = 1
 	}
 
 	resp, err := watcher.GetStats(userId, limit)

@@ -50,7 +50,7 @@ func GetGlobalRecords(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// 每頁最高拿到50筆
 	if pageSize > 50 {
 		pageSize = 50
@@ -93,7 +93,7 @@ func GetRecordsByType(c *gin.Context) {
 		return
 	}
 
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "5"))
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "-1"))
 
 	if err != nil {
 		logger.Warn(err)
@@ -105,13 +105,6 @@ func GetRecordsByType(c *gin.Context) {
 	}
 
 	getterType := c.DefaultQuery("type", "dd")
-
-	// 最高拿到100
-	if limit > 100 {
-		limit = 100
-	} else if limit <= 0 {
-		limit = 5
-	}
 
 	if getter, ok := recordTypeMap[getterType]; ok {
 		records, err := getter(userId, limit)
