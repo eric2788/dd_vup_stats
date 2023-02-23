@@ -9,40 +9,69 @@ func GetStatsByType(top int, t string) (interface{}, error) {
 	switch t {
 	case "count":
 		return GetTotalCount()
-		/* have performance issue, forbid temporarily
-		case "dd":
-			return GetMostDDWatchers(top)
-		case "behaviours":
-			return GetMostBehaviourWatchers(top)
-		case "spent":
-			return GetMostSpentWatchers(top)
-		case "famous":
-			return GetMostFamousVups(top)
-		case "interacted":
-			return GetMostInteractedVups(top)
-
-		*/
+	case "dd":
+		return GetMostDDWatchers(top)
+	case "behaviours":
+		return GetMostBehaviourWatchers(top)
+	case "spent":
+		return GetMostSpentWatchers(top)
+	case "famous":
+		return GetMostFamousVups(top)
+	case "interacted":
+		return GetMostInteractedVups(top)
+	case "earned":
+		return GetMostEarnedVups(top)
 	default:
-		return nil, fmt.Errorf("unknown type: %s", t)
+		return nil, fmt.Errorf("unknown stats type: %q", t)
 	}
+}
+
+// GetMostEarnedVups 获取从普通B站用户打赏营收最多的vups
+func GetMostEarnedVups(limit int) ([]AnalysisVupInfo, error) {
+	var mostEarnedVups []AnalysisVupInfo
+
+	limitStr := fmt.Sprintf("%d", limit)
+	if limit == -1 {
+		limitStr = "all"
+	}
+
+	err := db.Database.
+		Raw(fmt.Sprintf(`
+			select 
+				vups.uid, 
+				vups.name, 
+				vups.face, 
+				s.earned as count 
+			from vups_with_watcher_behaviours s 
+			inner join vups on vups.uid = s.uid 
+			order by count desc 
+			limit %s
+		`, limitStr)).
+		Error
+
+	return mostEarnedVups, err
 }
 
 // GetMostDDVups 獲取最受普通B站用户欢迎的vups (最多人访问的vup)
 func GetMostFamousVups(limit int) ([]AnalysisVupInfo, error) {
 	var mostFamousVups []AnalysisVupInfo
+	limitStr := fmt.Sprintf("%d", limit)
+	if limit == -1 {
+		limitStr = "all"
+	}
+
 	err := db.Database.
-		Model(&db.WatcherBehaviour{}).
-		Select([]string{
-			"vups.uid",
-			"vups.name",
-			"vups.face",
-			"COUNT(DISTINCT watcher_behaviours.uid) as count",
-		}).
-		Joins("inner join vups on vups.uid = watcher_behaviours.target_uid").
-		Group("watcher_behaviours.target_uid, vups.uid").
-		Order("count desc").
-		Limit(limit).
-		Find(&mostFamousVups).
+		Raw(fmt.Sprintf(`
+			select 
+				vups.uid, 
+				vups.name, 
+				vups.face, 
+				s.famous as count 
+			from vups_with_watcher_behaviours s 
+			inner join vups on vups.uid = s.uid 
+			order by count desc 
+			limit %s
+		`, limitStr)).
 		Error
 	return mostFamousVups, err
 }
@@ -50,20 +79,26 @@ func GetMostFamousVups(limit int) ([]AnalysisVupInfo, error) {
 // GetMostInteractedVups 获取经常被普通B站用户互动的vups (被普通B站用户互动次数最多)
 func GetMostInteractedVups(limit int) ([]AnalysisVupInfo, error) {
 	var mostInteractedVups []AnalysisVupInfo
+
+	limitStr := fmt.Sprintf("%d", limit)
+	if limit == -1 {
+		limitStr = "all"
+	}
+
 	err := db.Database.
-		Model(&db.WatcherBehaviour{}).
-		Select([]string{
-			"vups.uid",
-			"vups.name",
-			"vups.face",
-			"COUNT(watcher_behaviours.uid) as count",
-		}).
-		Joins("inner join vups on vups.uid = watcher_behaviours.target_uid").
-		Group("watcher_behaviours.target_uid, vups.uid").
-		Order("count desc").
-		Limit(limit).
-		Find(&mostInteractedVups).
+		Raw(fmt.Sprintf(`
+			select 
+				vups.uid, 
+				vups.name, 
+				vups.face, 
+				s.interacted as count 
+			from vups_with_watcher_behaviours s 
+			inner join vups on vups.uid = s.uid 
+			order by count desc 
+			limit %s
+		`, limitStr)).
 		Error
+
 	return mostInteractedVups, err
 }
 
@@ -72,17 +107,16 @@ func GetMostDDWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 
 	var mostDDWatchers []AnalysisWatcherInfo
 
+	// maximum limit is 50000
+	// having 7.7M+ records in watcher_stats since 2023/2/23
+	// will cause to web lag
+	if limit == -1 {
+		limit = 50000
+	}
+
 	err := db.Database.
-		Model(&db.WatcherBehaviour{}).
-		Select([]string{
-			"uid",
-			"(array_agg(u_name order by created_at desc))[1] as u_name",
-			"COUNT(DISTINCT target_uid) as count",
-		}).
-		Group("uid").
-		Order("count desc").
-		Limit(limit).
-		Find(&mostDDWatchers).
+		Raw(fmt.Sprintf("select uid, u_name, dd as count from watchers_stats order by count desc limit %d", limit)).
+		Scan(&mostDDWatchers).
 		Error
 
 	return mostDDWatchers, err
@@ -102,17 +136,16 @@ func GetMostBehaviourWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 
 	var mostBehaviourWatchers []AnalysisWatcherInfo
 
+	// maximum limit is 50000
+	// having 7.7M+ records in watcher_stats since 2023/2/23
+	// will cause to web lag
+	if limit == -1 {
+		limit = 50000
+	}
+
 	err := db.Database.
-		Model(&db.WatcherBehaviour{}).
-		Select([]string{
-			"uid",
-			"(array_agg(u_name order by created_at desc))[1] as u_name",
-			"COUNT(*) as count",
-		}).
-		Group("uid").
-		Order("count desc").
-		Limit(limit).
-		Find(&mostBehaviourWatchers).
+		Raw(fmt.Sprintf("select uid, u_name, count from watchers_stats order by count desc limit %d", limit)).
+		Scan(&mostBehaviourWatchers).
 		Error
 
 	return mostBehaviourWatchers, err
@@ -123,23 +156,23 @@ func GetMostSpentWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 
 	var mostSpentWatchers []AnalysisWatcherInfo
 
+	// maximum limit is 50000
+	// having 7.7M+ records in watcher_stats since 2023/2/23
+	// will cause to web lag
+	if limit == -1 {
+		limit = 50000
+	}
+
 	err := db.Database.
-		Model(&db.WatcherBehaviour{}).
-		Select([]string{
-			"uid",
-			"(array_agg(u_name order by created_at desc))[1] as u_name",
-			"SUM(price) as price",
-		}).
-		Where("price > 0").
-		Group("uid").
-		Order("price desc").
-		Limit(limit).
-		Find(&mostSpentWatchers).
+		Raw(fmt.Sprintf("select uid, u_name, spent as price from watchers_stats order by price desc limit %d", limit)).
+		Scan(&mostSpentWatchers).
 		Error
 
 	return mostSpentWatchers, err
 }
 
+// GetMostBehaviourWatchersByCommand 獲取最多行為的 dd
+// Still have performance issue
 func GetMostBehaviourWatchersByCommand(limit int, command string, price bool) ([]AnalysisWatcherInfo, error) {
 	var mostDDBehaviourVups []AnalysisWatcherInfo
 
@@ -147,19 +180,27 @@ func GetMostBehaviourWatchersByCommand(limit int, command string, price bool) ([
 	if price {
 		orderBy = "price"
 	}
+
+	// maximum limit is 50000
+	// having 7.7M+ records in watcher_stats since 2023/2/23
+	if limit == -1 {
+		limit = 50000
+	}
+
 	err := db.Database.
-		Model(&db.WatcherBehaviour{}).
-		Select([]string{
-			"uid",
-			"(array_agg(u_name order by created_at desc))[1] as u_name",
-			"COUNT(*) as count",
-			"SUM(price) as price",
-		}).
-		Where("command = ?", command).
-		Group("uid").
-		Order(fmt.Sprintf("%s desc", orderBy)).
-		Limit(limit).
-		Find(&mostDDBehaviourVups).
+		Raw(fmt.Sprintf(`
+			select
+				uid,
+				u_name,
+				SUM(count) as count,
+				SUM(price) as price
+			from watchers_fans
+			where command = ?
+			group by target_uid, uid, u_name
+			order by %s desc
+			limit %d;
+		`, orderBy, limit), command).
+		Scan(&mostDDBehaviourVups).
 		Error
 
 	return mostDDBehaviourVups, err

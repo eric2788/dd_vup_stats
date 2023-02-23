@@ -7,12 +7,12 @@ import (
 
 func GetFanStatsForVup(uid int64, limit int, t string) ([]AnalysisWatcherInfo, error) {
 	switch t {
-	case "count":
+	case "behaviours":
 		return GetMostBehavioursByVup(uid, limit)
 	case "spent":
 		return GetMostSpentByVup(uid, limit)
 	default:
-		return nil, fmt.Errorf("不支持的类型: %v", t)
+		return nil, fmt.Errorf("不支持的类型: %q", t)
 	}
 }
 
@@ -21,18 +21,24 @@ func GetMostBehavioursByVup(uid int64, limit int) ([]AnalysisWatcherInfo, error)
 
 	var mostDDWatchers []AnalysisWatcherInfo
 
+	if limit == -1 {
+		limit = 1000
+	}
+
 	err := db.Database.
-		Model(&db.WatcherBehaviour{}).
-		Select([]string{
-			"uid",
-			"(array_agg(u_name order by created_at desc))[1] as u_name",
-			"COUNT(*) as count",
-		}).
-		Where("target_uid = ?", uid).
-		Group("uid").
-		Order("count desc").
-		Limit(limit).
-		Find(&mostDDWatchers).
+		Raw(fmt.Sprintf(`
+			select
+				uid,
+				u_name,
+				sum(price) as price,
+				sum(count) as count
+			from watchers_fans
+			where target_uid = ?
+			group by uid, u_name
+			order by count desc
+			limit %d;
+		`, limit), uid).
+		Scan(&mostDDWatchers).
 		Error
 
 	if err != nil {
@@ -47,18 +53,24 @@ func GetMostSpentByVup(uid int64, limit int) ([]AnalysisWatcherInfo, error) {
 
 	var mostSpentWatchers []AnalysisWatcherInfo
 
+	if limit == -1 {
+		limit = 50000
+	}
+
 	err := db.Database.
-		Model(&db.WatcherBehaviour{}).
-		Select([]string{
-			"uid",
-			"(array_agg(u_name order by created_at desc))[1] as u_name",
-			"SUM(price) as price",
-		}).
-		Where("target_uid = ? and price > 0", uid).
-		Group("uid").
-		Order("price desc").
-		Limit(limit).
-		Find(&mostSpentWatchers).
+		Raw(fmt.Sprintf(`
+			select
+				uid,
+				u_name,
+				sum(price) as price,
+				sum(count) as count
+			from watchers_fans
+			where target_uid = ?
+			group by uid, u_name
+			order by price desc
+			limit %d;
+		`, limit), uid).
+		Scan(&mostSpentWatchers).
 		Error
 
 	if err != nil {
