@@ -19,7 +19,7 @@ func GetFanStatsForVup(uid int64, limit int, t string) ([]AnalysisWatcherInfo, e
 // GetMostBehavioursByVup 返回该 vup 中最高互动的 watcher
 func GetMostBehavioursByVup(uid int64, limit int) ([]AnalysisWatcherInfo, error) {
 
-	var mostDDWatchers []AnalysisWatcherInfo
+	var mostDDWatchers = make([]AnalysisWatcherInfo, 0)
 
 	if limit == -1 {
 		limit = 1000
@@ -51,7 +51,7 @@ func GetMostBehavioursByVup(uid int64, limit int) ([]AnalysisWatcherInfo, error)
 // GetMostSpentByVup 返回该 vup 中花费最多的 watcher
 func GetMostSpentByVup(uid int64, limit int) ([]AnalysisWatcherInfo, error) {
 
-	var mostSpentWatchers []AnalysisWatcherInfo
+	var mostSpentWatchers = make([]AnalysisWatcherInfo, 0)
 
 	if limit == -1 {
 		limit = 50000
