@@ -10,7 +10,7 @@ import (
 // to avoid hitting the database too often and huge performance issues
 
 var (
-	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 4096)
+	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 2048)
 )
 
 func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
