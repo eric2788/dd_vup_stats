@@ -1,6 +1,7 @@
 package vup
 
 import (
+	"fmt"
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/stats"
 )
@@ -48,61 +49,8 @@ func GetStatsByType(top int, t string) (interface{}, error) {
 	case "earned":
 		return GetMostEarnedVups(top)
 	default:
-		return GetGlobalStats(top)
+		return nil, fmt.Errorf("不支持的类型: %q", t)
 	}
-}
-
-// GetGlobalStats get global stats with all information
-//
-// Deprecated: high performance cost and slow response, recommend use GetStatsByType instead
-func GetGlobalStats(top int) (*Globalstats, error) {
-	var listeningCount int64
-	var recordCount int64
-	var behaviourCount int64
-	var mostDDBehaviourVups []AnalysisUserInfo
-	var mostSpentVups []PricedUserInfo
-	var mostDDVups []AnalysisUserInfo
-
-	s, err := stats.GetListening()
-	if err != nil {
-		return nil, err
-	}
-
-	listeningCount = s.TotalListeningCount
-
-	recordCount, err = GetTotalVupCount()
-	if err != nil {
-		return nil, err
-	}
-
-	behaviourCount, err = GetTotalBehaviourCount()
-	if err != nil {
-		return nil, err
-	}
-
-	mostDDBehaviourVups, err = GetMostBehaviourVups(top)
-	if err != nil {
-		return nil, err
-	}
-
-	mostDDVups, err = GetMostDDVups(top)
-	if err != nil {
-		return nil, err
-	}
-
-	mostSpentVups, err = GetMostSpentPricedVups(top)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Globalstats{
-		TotalVupRecorded:      recordCount,
-		CurrentListeningCount: listeningCount,
-		MostDDBehaviourVups:   mostDDBehaviourVups,
-		MostDDVups:            mostDDVups,
-		MostSpentVups:         mostSpentVups,
-		TotalDDBehaviours:     behaviourCount,
-	}, nil
 }
 
 // GetMostDDVups 獲取進入最多不同直播間的 vups
