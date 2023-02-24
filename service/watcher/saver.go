@@ -91,7 +91,8 @@ func insertRecords(records []*db.WatcherBehaviour) {
 func init() {
 	b, err := strconv.Atoi(os.Getenv("MAX_BUFFER"))
 	if err != nil {
-		panic(err)
+		logger.Errorf("error parsing MAX_BUFFER: %v, will use default value 5000", err)
+		b = 5000
 	}
 	maxBuffer = b
 }
