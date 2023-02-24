@@ -21,8 +21,6 @@ RUN chmod +x /dd_vup_stats
 
 ENV GIN_MODE=release
 
-ENV DB_TYPE=mysql
-
 ENV MYSQL_HOST=172.17.0.1
 ENV MYSQL_PORT=3306
 ENV MYSQL_USER=ddstats

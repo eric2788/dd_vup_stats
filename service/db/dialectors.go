@@ -2,14 +2,15 @@ package db
 
 import (
 	"fmt"
-	"gorm.io/driver/mysql"
+	"os"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"os"
 )
 
 // getMySQLDataSource returns a gorm.Dialector for MySQL.
 // Deprecated: Use getPgSQLDataSource instead.
+/*
 func getMySQLDataSource() gorm.Dialector {
 	mysqlUser := os.Getenv("MYSQL_USER")
 	mysqlPass := os.Getenv("MYSQL_PASS")
@@ -26,6 +27,7 @@ func getMySQLDataSource() gorm.Dialector {
 		mysqlDB,
 	))
 }
+*/
 
 // getPgSQLDataSource returns a gorm.Dialector for PostgreSQL.
 func getPgSQLDataSource() gorm.Dialector {
