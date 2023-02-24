@@ -1,4 +1,4 @@
-FROM golang:1.18-alpine AS builder
+FROM golang:1.19-alpine AS builder
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ RUN apk --no-cache add tzdata
 
 RUN go mod download
 
-RUN go build -o -v /go/bin/dd_vup_stats
+RUN go build -o /go/bin/dd_vup_stats
 
 FROM alpine:latest
 
