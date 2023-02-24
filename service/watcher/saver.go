@@ -35,7 +35,7 @@ func RunSaveTimer(ctx context.Context) {
 			insertWatchers()
 			return
 		case <-timer.C:
-			logger.Infof("開始寫入 watcher_behaviours 記錄...")
+
 			insertWatchers()
 		}
 	}
@@ -44,6 +44,8 @@ func RunSaveTimer(ctx context.Context) {
 func insertWatchers() {
 	defer writing.Store(false)
 	writing.Store(true)
+
+	logger.Infof("開始寫入 %v 個 watcher_behaviours 記錄...", len(watcherBehaviourQueue))
 
 	inserts := make([]*db.WatcherBehaviour, 0)
 	for watcher := range watcherBehaviourQueue {
@@ -63,6 +65,7 @@ func insertWatchers() {
 		insertRecords(inserts[:30000])
 		<-time.After(time.Second)
 		inserts = inserts[30000:]
+		logger.Infof("剩余 %v 個 watcher_behaviours 記錄...", len(inserts))
 	}
 
 	insertRecords(inserts)
