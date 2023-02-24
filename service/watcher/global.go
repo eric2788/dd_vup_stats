@@ -41,10 +41,10 @@ func GetMostEarnedVups(limit int) ([]AnalysisVupInfo, error) {
 				vups.uid, 
 				vups.name, 
 				vups.face, 
-				s.earned as count 
+				s.earned as price 
 			from vups_with_watcher_behaviours s 
 			inner join vups on vups.uid = s.uid 
-			order by count desc 
+			order by price desc 
 			limit %s
 		`, limitStr)).
 		Scan(&mostEarnedVups).

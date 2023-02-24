@@ -64,7 +64,7 @@ func insertWatchers() {
 		inserts = inserts[10000:]
 	}
 
-	insertRecords(inserts[:10000])
+	insertRecords(inserts)
 }
 
 func insertRecords(records []*db.WatcherBehaviour) {
