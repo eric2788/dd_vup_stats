@@ -2,6 +2,8 @@ package watcher
 
 import (
 	"context"
+	"os"
+	"strconv"
 	"sync/atomic"
 	"time"
 	"vup_dd_stats/service/db"
@@ -11,13 +13,13 @@ import (
 // to avoid hitting the database too often and huge performance issues
 
 var (
-	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 150000)
+	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 4096)
 	writing               atomic.Bool
+	maxBuffer             int
 )
 
 func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
-	// take 50000 as buffer size
-	for writing.Load() || len(watcherBehaviourQueue) > 100000 {
+	for writing.Load() || len(watcherBehaviourQueue) > 4000 {
 		<-time.After(time.Second)
 	}
 	watcherBehaviourQueue <- wb
@@ -64,11 +66,11 @@ func insertWatchers() {
 	}
 
 	// when it reached the maximum number of inserts in a single query
-	for len(inserts) >= 7000 {
+	for len(inserts) >= maxBuffer {
 		// split the inserts
-		insertRecords(inserts[:7000])
+		insertRecords(inserts[:maxBuffer])
 		<-time.After(time.Second)
-		inserts = inserts[7000:]
+		inserts = inserts[maxBuffer:]
 		logger.Infof("剩余 %v 個 watcher_behaviours 記錄...", len(inserts))
 	}
 
@@ -82,4 +84,12 @@ func insertRecords(records []*db.WatcherBehaviour) {
 	} else if result.RowsAffected > 0 {
 		logger.Infof("成功寫入 %d 筆 watcher_behaviour 的記錄。", result.RowsAffected)
 	}
+}
+
+func init() {
+	b, err := strconv.Atoi(os.Getenv("MAX_BUFFER"))
+	if err != nil {
+		panic(err)
+	}
+	maxBuffer = b
 }
