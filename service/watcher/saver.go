@@ -65,6 +65,8 @@ func insertWatchers() {
 		return
 	}
 
+	logger.Infof("即將寫入 %v 個 watcher_behaviours 記錄...", len(inserts))
+
 	// when it reached the maximum number of inserts in a single query
 	for len(inserts) >= maxBuffer {
 		// split the inserts
