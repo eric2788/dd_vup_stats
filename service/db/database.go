@@ -57,7 +57,7 @@ func InitDB() {
 		log.Errorf("Error while auto migrating tables: %v", err)
 	}
 
-	//createMaterializedViews(db.Session(&gorm.Session{NewDB: true}))
+	go createMaterializedViews(db)
 
 	Database = db
 }
