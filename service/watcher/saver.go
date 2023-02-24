@@ -2,6 +2,7 @@ package watcher
 
 import (
 	"context"
+	"sync/atomic"
 	"time"
 	"vup_dd_stats/service/db"
 )
@@ -11,9 +12,14 @@ import (
 
 var (
 	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 150000)
+	writing               atomic.Bool
 )
 
 func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
+	// take 50000 as buffer size
+	for writing.Load() || len(watcherBehaviourQueue) > 100000 {
+		<-time.After(time.Second)
+	}
 	watcherBehaviourQueue <- wb
 }
 
@@ -40,6 +46,9 @@ func insertWatchers() {
 		return
 	}
 
+	defer writing.Store(false)
+	writing.Store(true)
+
 	logger.Infof("開始寫入 %v 個 watcher_behaviours 記錄...", len(watcherBehaviourQueue))
 
 	inserts := make([]*db.WatcherBehaviour, 0)
@@ -55,11 +64,11 @@ func insertWatchers() {
 	}
 
 	// when it reached the maximum number of inserts in a single query
-	for len(inserts) >= 30000 {
+	for len(inserts) >= 7000 {
 		// split the inserts
-		insertRecords(inserts[:30000])
+		insertRecords(inserts[:7000])
 		<-time.After(time.Second)
-		inserts = inserts[30000:]
+		inserts = inserts[7000:]
 		logger.Infof("剩余 %v 個 watcher_behaviours 記錄...", len(inserts))
 	}
 
