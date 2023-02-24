@@ -20,6 +20,7 @@ func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
 // RunSaveTimer save the watcher_behaviour records to the database
 // this is run in a goroutine
 func RunSaveTimer(ctx context.Context) {
+	logger.Infof("開始運行 watcher_behaviour 記錄寫入程序...")
 	timer := time.NewTicker(5 * time.Second)
 	defer timer.Stop()
 	for {
@@ -28,6 +29,7 @@ func RunSaveTimer(ctx context.Context) {
 			insertWatchers()
 			return
 		case <-timer.C:
+			logger.Infof("開始寫入 watcher_behaviours 記錄...")
 			insertWatchers()
 		}
 	}
@@ -42,7 +44,7 @@ func insertWatchers() {
 		}
 	}
 	if len(inserts) == 0 {
-		logger.Debugf("没有可以插入的 watcher_behaviour 数据, 跳过")
+		logger.Infof("没有可以插入的 watcher_behaviour 数据, 跳过")
 		return
 	}
 
