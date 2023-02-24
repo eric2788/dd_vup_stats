@@ -50,6 +50,7 @@ func insertWatchers() {
 	for len(inserts) >= 10000 {
 		// split the inserts
 		go insertRecords(inserts[:10000])
+		<-time.After(time.Second * 3)
 		inserts = inserts[10000:]
 	}
 }
