@@ -10,7 +10,7 @@ RUN apk --no-cache add tzdata
 
 RUN go mod download
 
-RUN go build -o /go/bin/dd_vup_stats
+RUN go build -o -v /go/bin/dd_vup_stats
 
 FROM alpine:latest
 

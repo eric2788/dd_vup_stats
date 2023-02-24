@@ -63,6 +63,8 @@ func insertWatchers() {
 		<-time.After(time.Second)
 		inserts = inserts[10000:]
 	}
+
+	insertRecords(inserts[:10000])
 }
 
 func insertRecords(records []*db.WatcherBehaviour) {
