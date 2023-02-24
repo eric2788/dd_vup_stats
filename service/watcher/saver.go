@@ -45,7 +45,17 @@ func insertWatchers() {
 		logger.Debugf("没有可以插入的 watcher_behaviour 数据, 跳过")
 		return
 	}
-	result := db.Database.CreateInBatches(inserts, len(inserts))
+
+	// when it reached the maximum number of inserts in a single query
+	for len(inserts) >= 10000 {
+		// split the inserts
+		go insertRecords(inserts[:10000])
+		inserts = inserts[10000:]
+	}
+}
+
+func insertRecords(records []*db.WatcherBehaviour) {
+	result := db.Database.CreateInBatches(records, len(records))
 	if result.Error != nil {
 		logger.Errorf("寫入 watcher_behaviour 記錄失敗: %v", result.Error)
 	} else if result.RowsAffected > 0 {
