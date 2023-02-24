@@ -10,13 +10,13 @@ import (
 // to avoid hitting the database too often and huge performance issues
 
 var (
-	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 150000)
-	//writing               atomic.Bool
+	watcherBehaviourQueue      = make(chan *db.WatcherBehaviour, 150000)
+	writing               bool = false
 )
 
 func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
 	// take 50000 as buffer size
-	for len(watcherBehaviourQueue) > 100000 {
+	for writing || len(watcherBehaviourQueue) > 100000 {
 		<-time.After(time.Second)
 	}
 	watcherBehaviourQueue <- wb
@@ -41,8 +41,12 @@ func RunSaveTimer(ctx context.Context) {
 }
 
 func insertWatchers() {
-	//defer writing.Store(false)
-	//writing.Store(true)
+
+	defer func() {
+		writing = false
+	}()
+
+	writing = true
 
 	logger.Infof("開始寫入 %v 個 watcher_behaviours 記錄...", len(watcherBehaviourQueue))
 
