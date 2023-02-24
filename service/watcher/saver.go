@@ -11,7 +11,7 @@ import (
 // to avoid hitting the database too often and huge performance issues
 
 var (
-	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 2048)
+	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 5000)
 	writing               atomic.Bool
 )
 
