@@ -22,7 +22,7 @@ func GetMostBehavioursByVup(uid int64, limit int) ([]AnalysisWatcherInfo, error)
 	var mostDDWatchers = make([]AnalysisWatcherInfo, 0)
 
 	if limit == -1 {
-		limit = 1000
+		limit = 50000
 	}
 
 	err := db.Database.

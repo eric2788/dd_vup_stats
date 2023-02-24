@@ -51,7 +51,7 @@ func insertWatchers() {
 	defer writing.Store(false)
 	writing.Store(true)
 
-	logger.Infof("開始寫入 %v 個 watcher_behaviours 記錄...", len(watcherBehaviourQueue))
+	queueSize := len(watcherBehaviourQueue)
 
 	inserts := make([]*db.WatcherBehaviour, 0)
 	for watcher := range watcherBehaviourQueue {
@@ -65,7 +65,7 @@ func insertWatchers() {
 		return
 	}
 
-	logger.Infof("即將寫入 %v 個 watcher_behaviours 記錄...", len(inserts))
+	logger.Infof("即將寫入 %v -> %v 個 watcher_behaviours 記錄...", queueSize, len(inserts))
 
 	// when it reached the maximum number of inserts in a single query
 	for len(inserts) >= maxBuffer {
@@ -82,7 +82,11 @@ func insertWatchers() {
 func insertRecords(records []*db.WatcherBehaviour) {
 	result := db.Database.CreateInBatches(records, len(records))
 	if result.Error != nil {
-		logger.Errorf("寫入 watcher_behaviour 記錄失敗: %v", result.Error)
+		logger.Errorf("寫入 watcher_behaviour 記錄失敗: %v, 10 分鐘後重試寫入", result.Error)
+		go func() {
+			<-time.After(10 * time.Minute)
+			insertRecords(records)
+		}()
 	} else if result.RowsAffected > 0 {
 		logger.Infof("成功寫入 %d 筆 watcher_behaviour 的記錄。", result.RowsAffected)
 	}
