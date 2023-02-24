@@ -2,6 +2,7 @@ package watcher
 
 import (
 	"context"
+	"sync/atomic"
 	"time"
 	"vup_dd_stats/service/db"
 )
@@ -11,9 +12,13 @@ import (
 
 var (
 	watcherBehaviourQueue = make(chan *db.WatcherBehaviour, 2048)
+	writing               atomic.Bool
 )
 
 func SaveWatcherBehaviour(wb *db.WatcherBehaviour) {
+	for writing.Load() {
+		<-time.After(time.Second)
+	}
 	watcherBehaviourQueue <- wb
 }
 
@@ -36,6 +41,9 @@ func RunSaveTimer(ctx context.Context) {
 }
 
 func insertWatchers() {
+	defer writing.Store(false)
+	writing.Store(true)
+
 	inserts := make([]*db.WatcherBehaviour, 0)
 	for watcher := range watcherBehaviourQueue {
 		inserts = append(inserts, watcher)
@@ -51,8 +59,8 @@ func insertWatchers() {
 	// when it reached the maximum number of inserts in a single query
 	for len(inserts) >= 10000 {
 		// split the inserts
-		go insertRecords(inserts[:10000])
-		<-time.After(time.Second * 3)
+		insertRecords(inserts[:10000])
+		<-time.After(time.Second)
 		inserts = inserts[10000:]
 	}
 }
