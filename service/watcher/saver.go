@@ -45,6 +45,7 @@ func RunSaveTimer(ctx context.Context) {
 func insertWatchers() {
 
 	if len(watcherBehaviourQueue) == 0 {
+		logger.Debugf("没有可以插入的 watcher_behaviour 数据, 跳过")
 		return
 	}
 
@@ -60,12 +61,8 @@ func insertWatchers() {
 			break
 		}
 	}
-	if len(inserts) == 0 {
-		logger.Infof("没有可以插入的 watcher_behaviour 数据, 跳过")
-		return
-	}
 
-	logger.Infof("即將寫入 %v -> %v 個 watcher_behaviours 記錄...", queueSize, len(inserts))
+	logger.Debugf("即將寫入 %v -> %v 個 watcher_behaviours 記錄...", queueSize, len(inserts))
 
 	// when it reached the maximum number of inserts in a single query
 	for len(inserts) >= maxBuffer {
@@ -73,7 +70,7 @@ func insertWatchers() {
 		insertRecords(inserts[:maxBuffer])
 		<-time.After(time.Second)
 		inserts = inserts[maxBuffer:]
-		logger.Infof("剩余 %v 個 watcher_behaviours 記錄...", len(inserts))
+		logger.Debugf("剩余 %v 個 watcher_behaviours 記錄...", len(inserts))
 	}
 
 	insertRecords(inserts)

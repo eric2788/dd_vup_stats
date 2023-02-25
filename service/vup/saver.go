@@ -30,21 +30,21 @@ func RunSaveTimer(ctx context.Context) {
 
 func insertBehaviours() {
 	if len(behaviourQueue) == 0 {
+		logger.Debugf("没有可以插入的 behaviour 数据, 跳过")
 		return
 	}
+
 	queueSize := len(behaviourQueue)
 	inserts := make([]*db.Behaviour, 0)
+
 	for behaviour := range behaviourQueue {
 		inserts = append(inserts, behaviour)
 		if len(behaviourQueue) == 0 {
 			break
 		}
 	}
-	if len(inserts) == 0 {
-		logger.Infof("没有可以插入的 behaviour 数据, 跳过")
-		return
-	}
-	logger.Infof("即將寫入 %v -> %v 個 behaviours 記錄...", queueSize, len(inserts))
+
+	logger.Debugf("即將寫入 %v -> %v 個 behaviours 記錄...", queueSize, len(inserts))
 	insertRecords(inserts)
 }
 
