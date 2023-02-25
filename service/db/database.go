@@ -25,7 +25,7 @@ func InitDB() {
 	var logLevel logger.LogLevel
 
 	if os.Getenv("GIN_MODE") != "release" {
-		logLevel = logger.Info
+		logLevel = logger.Warn
 	} else {
 		logLevel = logger.Silent
 	}

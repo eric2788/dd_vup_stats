@@ -13,6 +13,7 @@ import (
 	"vup_dd_stats/service/crontab"
 	"vup_dd_stats/service/db"
 	statistics "vup_dd_stats/service/stats"
+	"vup_dd_stats/service/vup"
 	w "vup_dd_stats/service/watcher"
 
 	"github.com/gin-contrib/pprof"
@@ -54,6 +55,7 @@ func main() {
 	go blive.StartWebSocket(ctx, wg)
 	go statistics.StartListenStats(ctx)
 	go w.RunSaveTimer(ctx)
+	go vup.RunSaveTimer(ctx)
 
 	router := gin.New()
 

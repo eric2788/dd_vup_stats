@@ -9,8 +9,6 @@ import (
 	"vup_dd_stats/service/db"
 	"vup_dd_stats/service/vup"
 	"vup_dd_stats/service/watcher"
-
-	"gorm.io/gorm"
 )
 
 func danmuMsg(data *blive.LiveData) error {
@@ -83,19 +81,10 @@ func danmuMsg(data *blive.LiveData) error {
 		},
 	}
 
-	var result *gorm.DB
-
 	if isVup {
-		result = db.Database.Create(behaviour)
+		go vup.InsertBehaviour(behaviour)
 	} else {
 		go watcher.SaveWatcherBehaviour(behaviour.ToWatcherBehaviour(uname))
-		return nil
-	}
-
-	if result.Error != nil {
-		logger.Warnf("記錄彈幕訊息行為到資料庫失敗: %v", result.Error)
-	} else {
-		log("記錄彈幕訊息行為到資料庫成功。(%v 筆資料)", result.RowsAffected)
 	}
 
 	return nil
