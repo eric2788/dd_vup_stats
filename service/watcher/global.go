@@ -199,7 +199,7 @@ func GetMostBehaviourWatchersByCommand(limit int, command string, price bool) ([
 				SUM(price) as price
 			from watchers_fans
 			where command = ?
-			group by target_uid, uid, u_name
+			group by uid, u_name
 			order by %s desc
 			limit %d;
 		`, orderBy, limit), command).
