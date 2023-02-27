@@ -25,7 +25,7 @@ func InitDB() {
 	var logLevel logger.LogLevel
 
 	if os.Getenv("GIN_MODE") != "release" {
-		logLevel = logger.Info
+		logLevel = logger.Warn
 	} else {
 		logLevel = logger.Silent
 	}
@@ -43,7 +43,7 @@ func InitDB() {
 	pool, err := db.DB()
 	if err == nil {
 		pool.SetMaxIdleConns(5)
-		pool.SetMaxOpenConns(200)
+		pool.SetMaxOpenConns(500)
 		pool.SetConnMaxLifetime(time.Minute * 15)
 		pool.SetConnMaxIdleTime(time.Minute * 2)
 	} else {

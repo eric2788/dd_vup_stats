@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"golang.org/x/exp/rand"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -12,6 +13,13 @@ var (
 	queue = make(chan string, 10)
 	ctx   context.Context
 )
+
+func TestAtomicBool(t *testing.T) {
+	var a atomic.Bool
+	t.Log(a.Load())
+	a.Store(true)
+	t.Log(a.Load())
+}
 
 func TestSaveWatcherQueue(t *testing.T) {
 	go func() {

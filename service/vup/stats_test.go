@@ -20,11 +20,3 @@ func ATestGetVupStatsCommand(t *testing.T) {
 	}
 	jsonPrettyPrint(t, vup)
 }
-
-func aTestGetGlobalStats(t *testing.T) {
-	vup, err := GetGlobalStats(5)
-	if err != nil {
-		t.Fatal(err)
-	}
-	jsonPrettyPrint(t, vup)
-}

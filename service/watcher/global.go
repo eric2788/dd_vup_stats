@@ -28,7 +28,7 @@ func GetStatsByType(top int, t string) (interface{}, error) {
 
 // GetMostEarnedVups 获取从普通B站用户打赏营收最多的vups
 func GetMostEarnedVups(limit int) ([]AnalysisVupInfo, error) {
-	var mostEarnedVups []AnalysisVupInfo
+	var mostEarnedVups = make([]AnalysisVupInfo, 0)
 
 	limitStr := fmt.Sprintf("%d", limit)
 	if limit == -1 {
@@ -41,12 +41,13 @@ func GetMostEarnedVups(limit int) ([]AnalysisVupInfo, error) {
 				vups.uid, 
 				vups.name, 
 				vups.face, 
-				s.earned as count 
+				s.earned as price 
 			from vups_with_watcher_behaviours s 
 			inner join vups on vups.uid = s.uid 
-			order by count desc 
+			order by price desc 
 			limit %s
 		`, limitStr)).
+		Scan(&mostEarnedVups).
 		Error
 
 	return mostEarnedVups, err
@@ -54,7 +55,7 @@ func GetMostEarnedVups(limit int) ([]AnalysisVupInfo, error) {
 
 // GetMostDDVups 獲取最受普通B站用户欢迎的vups (最多人访问的vup)
 func GetMostFamousVups(limit int) ([]AnalysisVupInfo, error) {
-	var mostFamousVups []AnalysisVupInfo
+	var mostFamousVups = make([]AnalysisVupInfo, 0)
 	limitStr := fmt.Sprintf("%d", limit)
 	if limit == -1 {
 		limitStr = "all"
@@ -72,13 +73,14 @@ func GetMostFamousVups(limit int) ([]AnalysisVupInfo, error) {
 			order by count desc 
 			limit %s
 		`, limitStr)).
+		Scan(&mostFamousVups).
 		Error
 	return mostFamousVups, err
 }
 
 // GetMostInteractedVups 获取经常被普通B站用户互动的vups (被普通B站用户互动次数最多)
 func GetMostInteractedVups(limit int) ([]AnalysisVupInfo, error) {
-	var mostInteractedVups []AnalysisVupInfo
+	var mostInteractedVups = make([]AnalysisVupInfo, 0)
 
 	limitStr := fmt.Sprintf("%d", limit)
 	if limit == -1 {
@@ -97,6 +99,7 @@ func GetMostInteractedVups(limit int) ([]AnalysisVupInfo, error) {
 			order by count desc 
 			limit %s
 		`, limitStr)).
+		Scan(&mostInteractedVups).
 		Error
 
 	return mostInteractedVups, err
@@ -105,7 +108,7 @@ func GetMostInteractedVups(limit int) ([]AnalysisVupInfo, error) {
 // GetMostDDWatchers 獲取進入最多不同直播間的 dd
 func GetMostDDWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 
-	var mostDDWatchers []AnalysisWatcherInfo
+	var mostDDWatchers = make([]AnalysisWatcherInfo, 0)
 
 	// maximum limit is 50000
 	// having 7.7M+ records in watcher_stats since 2023/2/23
@@ -134,7 +137,7 @@ func GetTotalCount() (int64, error) {
 // GetMostBehaviourWatchers 獲取最多行為的 dd
 func GetMostBehaviourWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 
-	var mostBehaviourWatchers []AnalysisWatcherInfo
+	var mostBehaviourWatchers = make([]AnalysisWatcherInfo, 0)
 
 	// maximum limit is 50000
 	// having 7.7M+ records in watcher_stats since 2023/2/23
@@ -154,7 +157,7 @@ func GetMostBehaviourWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 // GetMostSpentWatchers 獲取花費最多的 dd
 func GetMostSpentWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 
-	var mostSpentWatchers []AnalysisWatcherInfo
+	var mostSpentWatchers = make([]AnalysisWatcherInfo, 0)
 
 	// maximum limit is 50000
 	// having 7.7M+ records in watcher_stats since 2023/2/23
@@ -174,7 +177,7 @@ func GetMostSpentWatchers(limit int) ([]AnalysisWatcherInfo, error) {
 // GetMostBehaviourWatchersByCommand 獲取最多行為的 dd
 // Still have performance issue
 func GetMostBehaviourWatchersByCommand(limit int, command string, price bool) ([]AnalysisWatcherInfo, error) {
-	var mostDDBehaviourVups []AnalysisWatcherInfo
+	var mostDDBehaviourVups = make([]AnalysisWatcherInfo, 0)
 
 	orderBy := "count"
 	if price {
@@ -196,7 +199,7 @@ func GetMostBehaviourWatchersByCommand(limit int, command string, price bool) ([
 				SUM(price) as price
 			from watchers_fans
 			where command = ?
-			group by target_uid, uid, u_name
+			group by uid, u_name
 			order by %s desc
 			limit %d;
 		`, orderBy, limit), command).
