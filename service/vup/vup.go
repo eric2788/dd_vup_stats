@@ -163,7 +163,7 @@ func UpdateLastListens(listening, unListening []int64) {
 }
 
 // SearchVups search vups by name
-func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*stats.ListResp[UserResp], error) {
+func SearchVups(query string, page, pageSize int, orderBy string, desc bool) (*stats.ListResp[UserResp], error) {
 
 	// ensure page is valid
 	page = int(math.Max(1, float64(page)))
@@ -196,7 +196,10 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*st
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
-		Where("vups.name like ? and behaviours.uid != behaviours.target_uid", fmt.Sprintf("%%%s%%", name)).
+		Where("(vups.name like ? or vups.uid like ?) and behaviours.uid != behaviours.target_uid",
+			fmt.Sprintf("%%%s%%", query), // name like %query%
+			fmt.Sprintf("%%%s", query), // uid like %query
+		).
 		Group("behaviours.uid, vups.uid").
 		Order(fmt.Sprintf("%s %s NULLS LAST", orderBy, order)).
 		Offset((page - 1) * pageSize).
@@ -210,7 +213,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*st
 	err = db.Database.
 		Model(&db.Vup{}).
 		Select("count(*)").
-		Where("name like ?", fmt.Sprintf("%%%s%%", name)).
+		Where("name like ?", fmt.Sprintf("%%%s%%", query)).
 		Find(&totalSearchCount).Error
 
 	if err != nil {
@@ -246,7 +249,7 @@ func SearchVups(name string, page, pageSize int, orderBy string, desc bool) (*st
 	go UpdateLastListens(listening, unListening)
 
 	// annoymous record
-	go analysis.RecordSearchText(name, totalSearchCount)
+	go analysis.RecordSearchText(query, totalSearchCount)
 
 	return &stats.ListResp[UserResp]{
 		Page:    page,

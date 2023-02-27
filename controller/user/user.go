@@ -28,6 +28,9 @@ func GetUsers(c *gin.Context) {
 
 	searchStr := c.DefaultQuery("q", "")
 
+	// 如果有 uid: 前綴，就只搜尋 uid (laplace.live caused)
+	searchStr = strings.TrimPrefix(strings.ToLower(searchStr), "uid:")
+
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil {
 		logger.Warn(err)
