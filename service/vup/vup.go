@@ -196,9 +196,9 @@ func SearchVups(query string, page, pageSize int, orderBy string, desc bool) (*s
 		}).
 		Joins("left join behaviours on behaviours.uid = vups.uid").
 		Joins("left join last_listens on last_listens.uid = vups.uid").
-		Where("(vups.name like ? or vups.uid like ?) and behaviours.uid != behaviours.target_uid",
+		Where("(vups.name like ? or vups.uid::text like ?) and behaviours.uid != behaviours.target_uid",
 			fmt.Sprintf("%%%s%%", query), // name like %query%
-			fmt.Sprintf("%%%s", query), // uid like %query
+			fmt.Sprintf("%s%%", query), // uid like query%
 		).
 		Group("behaviours.uid, vups.uid").
 		Order(fmt.Sprintf("%s %s NULLS LAST", orderBy, order)).
