@@ -52,7 +52,7 @@ func MigrateToVup(uid int64) {
 		behaviours = behaviours[1000:]
 	}
 
-	affected, err := insertBehaviours(behaviours[:1000])
+	affected, err := insertBehaviours(behaviours)
 
 	if err != nil {
 		log.Errorf("將 UID:%v 的行為記錄從 watcher_behaviour 表中移動到 behaviour 表時出現錯誤: %v", uid, err)
