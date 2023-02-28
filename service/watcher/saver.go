@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 	"vup_dd_stats/service/db"
@@ -56,6 +57,10 @@ func insertWatchers() {
 
 	inserts := make([]*db.WatcherBehaviour, 0)
 	for watcher := range watcherBehaviourQueue {
+
+		// remove 0x00 byte null characters
+		watcher.Display = strings.Replace(watcher.Display, "\x00", "", -1)
+
 		inserts = append(inserts, watcher)
 		if len(watcherBehaviourQueue) == 0 {
 			break

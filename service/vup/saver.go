@@ -2,6 +2,7 @@ package vup
 
 import (
 	"context"
+	"strings"
 	"time"
 	"vup_dd_stats/service/db"
 )
@@ -38,6 +39,10 @@ func insertBehaviours() {
 	inserts := make([]*db.Behaviour, 0)
 
 	for behaviour := range behaviourQueue {
+
+		// remove 0x00 byte null characters
+		behaviour.Display = strings.Replace(behaviour.Display, "\x00", "", -1)
+
 		inserts = append(inserts, behaviour)
 		if len(behaviourQueue) == 0 {
 			break
