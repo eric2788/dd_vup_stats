@@ -70,7 +70,7 @@ func insertWatchers() {
 	logger.Debugf("即將寫入 %v -> %v 個 watcher_behaviours 記錄...", queueSize, len(inserts))
 
 	// when it reached the maximum number of inserts in a single query
-	for len(inserts) >= maxBuffer {
+	for len(inserts) > maxBuffer {
 		// split the inserts
 		insertRecords(inserts[:maxBuffer])
 		<-time.After(time.Second)

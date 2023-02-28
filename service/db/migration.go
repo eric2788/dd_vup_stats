@@ -1,6 +1,10 @@
 package db
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 // MigrateToVup will migrate specific watcher to vup
 // it will first move the records of the watcher from watcher_behaviour to behaviour table
@@ -34,21 +38,23 @@ func MigrateToVup(uid int64) {
 
 	log.Debugf("即將遷移 %d 筆記錄到 behaviour 表", len(behaviours))
 
-	result := Database.
-		Model(&Behaviour{}).
-		CreateInBatches(behaviours, len(behaviours))
+	for len(behaviours) > 1000 {
 
-	if result.Error != nil {
-		log.Errorf("將 UID:%v 的行為記錄從 watcher_behaviour 表中移動到 behaviour 表時出現錯誤: %v", uid, err)
-		return
-	} else if result.RowsAffected > 0 {
-		log.Infof("成功將 UID:%v 的 %d 筆行為記錄從 watcher_behaviour 表中移動到 behaviour 表", uid, result.RowsAffected)
+		affected, err := insertBehaviours(behaviours[:1000])
+
+		if err != nil {
+			log.Errorf("將 UID:%v 的行為記錄從 watcher_behaviour 表中移動到 behaviour 表時出現錯誤: %v", uid, err)
+		} else if affected > 0 {
+			log.Infof("成功將 UID:%v 的 %d 筆行為記錄從 watcher_behaviour 表中移動到 behaviour 表", uid, affected)
+		}
+
+		behaviours = behaviours[1000:]
 	}
 
 	log.Debugf("即將刪除 UID:%v 的 %d 筆記錄", uid, len(watcherBehaviours))
 
 	// delete records from watcher_behaviour table
-	result = Database.
+	result := Database.
 		Where("uid = ?", uid).
 		Delete(&WatcherBehaviour{})
 
@@ -57,6 +63,25 @@ func MigrateToVup(uid int64) {
 	} else if result.RowsAffected > 0 {
 		log.Infof("成功從 watcher_behaviour 刪除 UID:%v 的 %d 筆行為記錄", uid, result.RowsAffected)
 	}
+
+}
+
+func insertBehaviours(records []*Behaviour) (int64, error) {
+
+	result := Database.
+		Model(&Behaviour{}).
+		CreateInBatches(records, len(records))
+
+	if result.Error != nil {
+		log.Errorf("將 %d 筆記錄插入 behaviour 表時出現錯誤: %v", len(records), result.Error)
+		go func() {
+			log.Warnf("10 分鐘後重試插入記錄")
+			<-time.After(10 * time.Minute)
+			insertBehaviours(records)
+		}()
+	}
+
+	return result.RowsAffected, result.Error
 
 }
 
