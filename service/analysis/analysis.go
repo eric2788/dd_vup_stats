@@ -57,7 +57,7 @@ func RecordSearchText(txt string, result int64) {
 func RecordSearchUser(uid int64, name, category string) {
 	ana := &db.UserAnalysis{}
 
-	err := db.Database.FirstOrCreate(ana, db.UserAnalysis{Uid: uid, Category: category}).Error
+	err := db.Database.FirstOrCreate(ana, db.UserAnalysis{Uid: uid}).Error
 
 	if err != nil {
 		logger.Errorf("尋找或創建匿名 %s 訪問數據時出現錯誤: %v", category, err)
@@ -65,6 +65,7 @@ func RecordSearchUser(uid int64, name, category string) {
 	}
 
 	ana.UserName = name
+	ana.Category = category
 	ana.AccessCount += 1
 	ana.LastAccessDate = time.Now().Format(TimeFormat)
 
