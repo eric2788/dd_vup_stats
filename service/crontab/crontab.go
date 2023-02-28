@@ -43,5 +43,13 @@ func StartRefreshMViewJob(db *gorm.DB) {
 		}
 	})
 
+	c.AddFunc("30 5 * * 1", func() {
+		logger.Infof("即将分析所有 tables...")
+		err := db.Exec(`ANALYZE`).Error
+		if err != nil {
+			logger.Errorf("分析所有 tables 失败: %v", err)
+		}
+	})
+
 	c.Start()
 }
