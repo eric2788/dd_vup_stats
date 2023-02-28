@@ -48,7 +48,16 @@ func MigrateToVup(uid int64) {
 			log.Infof("成功將 UID:%v 的 %d 筆行為記錄從 watcher_behaviour 表中移動到 behaviour 表", uid, affected)
 		}
 
+		<-time.After(1 * time.Second)
 		behaviours = behaviours[1000:]
+	}
+
+	affected, err := insertBehaviours(behaviours[:1000])
+
+	if err != nil {
+		log.Errorf("將 UID:%v 的行為記錄從 watcher_behaviour 表中移動到 behaviour 表時出現錯誤: %v", uid, err)
+	} else if affected > 0 {
+		log.Infof("成功將 UID:%v 的 %d 筆行為記錄從 watcher_behaviour 表中移動到 behaviour 表", uid, affected)
 	}
 
 	log.Debugf("即將刪除 UID:%v 的 %d 筆記錄", uid, len(watcherBehaviours))
