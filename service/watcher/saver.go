@@ -73,7 +73,7 @@ func insertWatchers() {
 	for len(inserts) > maxBuffer {
 		// split the inserts
 		insertRecords(inserts[:maxBuffer])
-		<-time.After(time.Second)
+		<-time.After(time.Second * 5)
 		inserts = inserts[maxBuffer:]
 		logger.Debugf("剩余 %v 個 watcher_behaviours 記錄...", len(inserts))
 	}
@@ -97,8 +97,8 @@ func insertRecords(records []*db.WatcherBehaviour) {
 func init() {
 	b, err := strconv.Atoi(os.Getenv("MAX_BUFFER"))
 	if err != nil {
-		logger.Errorf("error parsing MAX_BUFFER: %v, will use default value 5000", err)
-		b = 5000
+		logger.Errorf("error parsing MAX_BUFFER: %v, will use default value 1000", err)
+		b = 1000
 	}
 	maxBuffer = b
 }
