@@ -42,10 +42,7 @@ func InitDB() {
 
 	pool, err := db.DB()
 	if err == nil {
-		pool.SetMaxIdleConns(5)
 		pool.SetMaxOpenConns(500)
-		pool.SetConnMaxLifetime(time.Minute * 15)
-		pool.SetConnMaxIdleTime(time.Minute * 2)
 	} else {
 		log.Warnf("設定資料庫連接池時出現錯誤: %v", err)
 	}
