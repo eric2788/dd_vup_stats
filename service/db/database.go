@@ -2,8 +2,6 @@ package db
 
 import (
 	"os"
-	"time"
-
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

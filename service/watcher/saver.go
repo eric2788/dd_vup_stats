@@ -73,7 +73,7 @@ func insertWatchers() {
 	for len(inserts) > maxBuffer {
 		// split the inserts
 		insertRecords(inserts[:maxBuffer])
-		<-time.After(time.Second * 2)
+		<-time.After(time.Second * 5)
 		inserts = inserts[maxBuffer:]
 		logger.Debugf("剩余 %v 個 watcher_behaviours 記錄...", len(inserts))
 	}
