@@ -11,9 +11,9 @@ import (
 // GetStats get user stats
 func GetStats(uid int64, limit int) (*Analysis, error) {
 
-	var mostDDVups []AnalysisUserInfo
-	var mostGuestVups []AnalysisUserInfo
-	var mostSpentVups []PricedUserInfo
+	var mostDDVups = make([]AnalysisUserInfo, 0)
+	var mostGuestVups = make([]AnalysisUserInfo, 0)
+	var mostSpentVups = make([]PricedUserInfo, 0)
 
 	err := db.Database.
 		Model(&db.Behaviour{}).
@@ -93,8 +93,8 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 // GetStatsCommand get user stats by command
 func GetStatsCommand(uid int64, limit int, command string, price bool) (*Analysis, error) {
 
-	var mostDDVups []AnalysisUserInfo
-	var mostGuestVups []AnalysisUserInfo
+	var mostDDVups = make([]AnalysisUserInfo, 0)
+	var mostGuestVups = make([]AnalysisUserInfo, 0)
 
 	r := db.Database.Model(&db.Behaviour{})
 
@@ -182,7 +182,7 @@ func GetTotalStatusByCommand(uid int64, command string) stats.TotalStats {
 }
 
 func GetTotalCommandStats(uid int64) ([]stats.TotalStats, error) {
-	var totalStats []stats.TotalStats
+	var totalStats = make([]stats.TotalStats, 0)
 
 	err := db.Database.
 		Model(&db.Behaviour{}).

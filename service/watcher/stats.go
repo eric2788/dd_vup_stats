@@ -10,7 +10,7 @@ import (
 
 func GetTotalCommandStats(uid int64) ([]stats.TotalStats, error) {
 
-	var totalStatus []stats.TotalStats
+	var totalStatus = make([]stats.TotalStats, 0)
 
 	err := db.Database.
 		Model(&db.WatcherBehaviour{}).
@@ -34,7 +34,7 @@ func GetTotalCommandStats(uid int64) ([]stats.TotalStats, error) {
 
 func GetStatsCommand(uid int64, limit int, command string, price bool) ([]AnalysisVupInfo, error) {
 
-	var mostDDVups []AnalysisVupInfo
+	var mostDDVups = make([]AnalysisVupInfo, 0)
 
 	r := db.Database.Model(&db.WatcherBehaviour{})
 
@@ -73,7 +73,7 @@ func GetStatsCommand(uid int64, limit int, command string, price bool) ([]Analys
 
 func GetStats(uid int64, limit int) (*Analysis, error) {
 
-	var mostDDVups []AnalysisVupInfo
+	var mostDDVups = make([]AnalysisVupInfo, 0)
 
 	// D 最多
 	err := db.Database.
@@ -97,7 +97,7 @@ func GetStats(uid int64, limit int) (*Analysis, error) {
 		return nil, err
 	}
 
-	var mostSpentVups []PricedVupInfo
+	var mostSpentVups = make([]PricedVupInfo, 0)
 
 	// 花費最多
 	err = db.Database.
