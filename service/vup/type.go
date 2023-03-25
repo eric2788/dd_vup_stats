@@ -53,7 +53,7 @@ type (
 	Analysis struct {
 		TopDDVups    []AnalysisUserInfo `json:"top_dd_vups"`
 		TopGuestVups []AnalysisUserInfo `json:"top_guest_vups"`
-		TopSpentVups []PricedUserInfo   `json:"top_spent_vups,omitempty"`
+		TopSpentVups []PricedUserInfo   `json:"top_spent_vups"`
 	}
 
 	Globalstats struct {
